@@ -14,7 +14,8 @@ import glob
 
 parser = argparse.ArgumentParser(description='Compute the values of lambda and faithfulness above which Cutler-Vallisneri bias exceeds statistical error from Fisher.')
 
-#parser.add_argument('-N', default="10", type=int,  help='number of gwbench network objects to read (default: 10)')
+parser.add_argument('-N', default=None, type=int,  help='number of gwbench network objects to read (default: None, i.e. ALL the objects in inputdir)')
+parser.add_argument('--offset', default=0, type=int,  help='offset for indices of gwbench network objects to read (default: 0)')
 
 parser.add_argument('-p', '--parameter', default="0", type=int,  help='parameter to compute errors for (default: 0 : Mc)')
 
@@ -26,14 +27,20 @@ parser.add_argument('-i', '--inputdir', default="../data/uniform_networks",  typ
 args = vars(parser.parse_args())
 # print(args)
 
-#n_events = args["N"]
+n_events = args["N"]
+offset = args["offset"]
 outfile = args["outfile"]
 param_index = args["parameter"]
 inputdir = args["inputdir"]
 
+n_networks_all = len(glob.glob1(inputdir,"*_xas_net"))
 
-n_events = len(glob.glob1(inputdir,"*_xas_net"))
-print(f"Reading {n_events} network objects")
+if n_events is None:
+    n_events = n_networks_all
+
+n_events = min(n_events, n_networks_all-offset)
+
+print(f"Reading {n_events} network objects, starting from network {offset}")
 
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
 param_list = deriv_symbs_string.split()
@@ -113,7 +120,7 @@ lams = np.logspace(-4., -0.5, 100)
 
 errors_th_lam = np.zeros((n_events, len(lams)))
 
-for i in range(n_events):
+for i in range(offset, offset+n_events):
     print(f"Calculating bias for network {i+1} of {n_events}")
     with open(inputdir + f'/{i}_xas_net', "rb") as fi:
         net1 = dill.load(fi)
