@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#SBATCH --job-name=uniform_events
+#SBATCH --time=1:00:00
+#SBATCH --nodes=1 
+#SBATCH --ntasks=24
+#SBATCH --partition=defq
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=vkapil1@jh.edu
+
+ml anaconda
+conda activate gwbench
+
+mpirun -n 24 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_uniform.py -N 96 --offset 0  
+

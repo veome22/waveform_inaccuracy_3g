@@ -1,0 +1,6 @@
+__pycache__/*
+.jupyter/
+sbatch_scripts/slurm-*
+.template_*
+data/
+gwbench/

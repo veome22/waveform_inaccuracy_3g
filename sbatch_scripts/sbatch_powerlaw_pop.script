@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#SBATCH --job-name=powerlaw_alpha_-1.5
+#SBATCH --time=1:00:00
+#SBATCH --nodes=1 
+#SBATCH --ntasks=10
+#SBATCH --partition=defq
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=vkapil1@jh.edu
+
+ml anaconda
+conda activate gwbench
+
+mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/sample_pop_from_powerlaw.py -N 10 --offset 0  
+
