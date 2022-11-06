@@ -62,7 +62,7 @@ def get_network_response(inj_params, network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO
 
 
 
-parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a power-law distribution.')
+parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a uniform distribution.')
 
 parser.add_argument('-N', default="10", type=int,  help='number of merger events to sample (default: 10)')
 parser.add_argument('-o', '--outputdir',  default="../data/uniform_networks", type=str,  help='directory of output networks (default: ../data/uniform_networks)')
@@ -133,11 +133,17 @@ if __name__ == "__main__":
 
         sys.stdout.write("Event number %d (%d) being simulated by processor %d of %d\n" % (i, task, rank, size))
 
-        net1 = get_network_response(inj_params=inj_params, approximant='IMRPhenomXAS')
         net2 = get_network_response(inj_params=inj_params, approximant='IMRPhenomD')
 
-        net1.save_network(f'{output_path}/{offset+i}_xas_net')
-        net2.save_network(f'{output_path}/{offset+i}_d_net')    
+        if net2.cov is None:
+            with open('{output_path}/{offset+i}_xas_net', "wb") as fi:
+                dill.dump(None, fi)
+            with open('{output_path}/{offset+i}_d_net', "wb") as fi:
+                dill.dump(None, fi)
+        else:        
+            net1 = get_network_response(inj_params=inj_params, approximant='IMRPhenomXAS')
+            net1.save_network(f'{output_path}/{offset+i}_xas_net')
+            net2.save_network(f'{output_path}/{offset+i}_d_net')    
     
     end = time.time()
 

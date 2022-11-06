@@ -130,7 +130,7 @@ for i in range(n_events):
         net2 = dill.load(fi)
         fi.close()
     
-    if net2.cov is None:
+    if net2 is None:
         print("NoneType object found, skipping.")
         continue
 
