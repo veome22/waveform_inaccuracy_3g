@@ -11,7 +11,7 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 24 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_uniform.py -N 192 --offset 96
-mpirun -n 24 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_uniform.py -N 192 --offset 288
+mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_uniform.py -N 192 --offset 48 -o ../data/uniform_networks_f_max
+mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_uniform.py -N 192 --offset 240 -o ../data/uniform_networks_f_max
 
 

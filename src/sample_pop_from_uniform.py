@@ -2,13 +2,15 @@ import numpy as np
 import argparse
 from gwbench import injections
 from gwbench import network
+from gwbench import basic_relations as br
 
+import dill
 import sys
 from mpi4py import MPI
 import os
 import time
 
-def get_network_response(inj_params, network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'):
+def get_network_response(inj_params, f_max, network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'):
     
     # initialize the network with the desired detectors
     net = network.Network(network_spec)
@@ -20,7 +22,7 @@ def get_network_response(inj_params, network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO
 
     # pick the desired frequency range
     f_min = 5.
-    f_max = 1024.
+    #f_max = 1024.
     d_f = 2**-4
     f = np.arange(f_min, f_max, d_f)
 
@@ -86,12 +88,11 @@ mass_dict = {'dist': 'uniform', 'mmin': m_min, 'mmax':m_max}
 spin_dict = {'geom': 'spherical', 'dim':3, 'chi_lo':0., 'chi_hi':1.}
 cosmo_dict = {'sampler': 'uniform_comoving_volume_rejection', 'zmin':0., 'zmax':3.}
 
-data = injections.injections_CBC_params_redshift(cosmo_dict,mass_dict,spin_dict,num_injs=num_injs,seed=seed, redshifted=0)
+data = injections.injections_CBC_params_redshift(cosmo_dict,mass_dict,spin_dict,num_injs=num_injs,seed=seed, redshifted=True)
 Mcs, etas, chi1x, chi1y, chi1z, chi2x, chi2y, chi2z, DLs, iotas, ras, decs, psis, zs = data
 
-#Mcs, etas = injections.mass_sampler(mass_dict,num_injs,seed)
-#iotas, ras, decs, psis = injections.angle_sampler(num_injs,seed)
-#zs, DLs = injections.redshift_lum_distance_sampler(cosmo_dict,num_injs,seed)
+mtotals = Mcs / (etas**(3./5.))
+f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
 
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
@@ -133,15 +134,16 @@ if __name__ == "__main__":
 
         sys.stdout.write("Event number %d (%d) being simulated by processor %d of %d\n" % (i, task, rank, size))
 
-        net2 = get_network_response(inj_params=inj_params, approximant='IMRPhenomD')
+        net2 = get_network_response(inj_params=inj_params, f_max = f_highs[i], approximant='IMRPhenomD')
 
         if net2.cov is None:
-            with open('{output_path}/{offset+i}_xas_net', "wb") as fi:
+            sys.stdout.write(f"None type matrix for Mc:{Mcs[i]:.3f}, eta:{etas[i]:.3f} \n")
+            with open(f'{output_path}/{offset+i}_xas_net', "wb") as fi:
                 dill.dump(None, fi)
-            with open('{output_path}/{offset+i}_d_net', "wb") as fi:
+            with open(f'{output_path}/{offset+i}_d_net', "wb") as fi:
                 dill.dump(None, fi)
         else:        
-            net1 = get_network_response(inj_params=inj_params, approximant='IMRPhenomXAS')
+            net1 = get_network_response(inj_params=inj_params, f_max = f_highs[i],  approximant='IMRPhenomXAS')
             net1.save_network(f'{output_path}/{offset+i}_xas_net')
             net2.save_network(f'{output_path}/{offset+i}_d_net')    
     
