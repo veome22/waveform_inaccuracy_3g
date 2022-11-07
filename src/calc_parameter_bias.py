@@ -121,7 +121,7 @@ lams = np.logspace(-4., -0.5, 100)
 errors_th_lam = np.zeros((n_events, len(lams)))
 
 for i in range(n_events):
-    print(f"Calculating bias for network {i+offset+1}")
+    print(f"Calculating bias for network {i+offset} ({i+1} of {n_events})")
     with open(inputdir + f'/{i+offset}_xas_net', "rb") as fi:
         net1 = dill.load(fi)
         fi.close() 
