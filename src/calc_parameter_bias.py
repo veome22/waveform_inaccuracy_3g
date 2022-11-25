@@ -21,7 +21,7 @@ parser.add_argument('-p', '--parameter', default="0", type=int,  help='parameter
 
 parser.add_argument('-o', '--outfile', default="../output/uniform_statistics_Mc.csv",  type=str, help='file to output the binary properties, threshold lambda, and threshold faithfulness (default: ../output/bias_uniform_statistics_Mc.csv)')
   
-parser.add_argument('-i', '--inputdir', default="../data/uniform_networks",  type=str, help='input directory of network files (default: ../data/uniform_networks')
+parser.add_argument('-i', '--inputdir', default="../data/uniform_networks_f_max",  type=str, help='input directory of network files (default: ../data/uniform_networks_f_max')
 
 
 args = vars(parser.parse_args())
@@ -113,7 +113,7 @@ stat_errs = np.zeros(n_events)
 full_bias = np.zeros(n_events)
 max_lams = np.zeros(n_events)
 min_faiths = np.zeros(n_events)
-
+full_faiths = np.zeros(n_events)
 
 # lams = np.linspace(0., 0.15, 100)
 lams = np.logspace(-4., -0.5, 100)
@@ -223,6 +223,9 @@ for i in range(n_events):
     
     #print("getting pycbc waveform 1")
     hp1_pyc = FrequencySeries(net1.hfp, delta_f=delta_f)
+    
+    hp2_pyc = FrequencySeries(net2.hfp, delta_f=delta_f)
+    full_faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net1.f[0])
 
    # print("getting hybrid waveform")
     hp_hyb, hc_hyb = get_hyb_wf(net1.hfp, net1.hfc, net2.hfp, net2.hfc, max_lam)
@@ -236,6 +239,7 @@ for i in range(n_events):
     stat_errs[i] = sigma_mc
     max_lams[i] = max_lam
     min_faiths[i] = min_faith
+    full_faiths[i] = full_faith
 
     #print(f"Min faithfulness for M={mtotal:.1f}, q={q:.1f} = {min_faith:.6f}\n")
 
@@ -249,8 +253,9 @@ df['eta'] = inj_eta
 df['DL'] = inj_DL
 df['M_tot'] = inj_mtotal
 df['q'] = inj_q
-df['full_bias'] = full_bias
+df['full_faith'] = full_faiths
 df['snr'] = snrs
+df[param+'_full_bias'] = full_bias
 df[param+'_stat_err'] = stat_errs
 df[param+'_max_lam'] = max_lams
 df[param+'_min_faith'] = min_faiths
