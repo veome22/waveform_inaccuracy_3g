@@ -101,7 +101,7 @@ seed=42
 
 redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
 
-if m_tot is not None:
+if m_tot is None:
     mass1 = np.random.uniform(m_min, m_max, num_injs)
     mass2 = np.random.uniform(m_min, mass1, num_injs)
 else:

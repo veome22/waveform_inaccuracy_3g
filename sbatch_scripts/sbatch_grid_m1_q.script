@@ -2,8 +2,8 @@
 
 #SBATCH --job-name=grid_mtot_q
 #SBATCH --time=4:00:00
-#SBATCH --nodes=3
-#SBATCH --ntasks=144
+#SBATCH --nodes=1
+#SBATCH --ntasks=48
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -11,7 +11,4 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_m1_q.py -N 240 --mtot=30.0 --offset 0 --DL 1000 -o ../data/mtot_30_grid_DL_1000 &
-mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_m1_q.py -N 240 --mtot=50.0 --offset 0 --DL 1000 -o ../data/mtot_50_grid_DL_1000 &
-mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_m1_q.py -N 240 --mtot=80.0 --offset 0 --DL 1000 -o ../data/mtot_80_grid_DL_1000 &
-wait
+mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_m1_q.py -N 240 --mtot=12.0 --offset 0 --DL 1000 -o ../data/mtot_q_grids/mtot_12_grid_DL_1000
