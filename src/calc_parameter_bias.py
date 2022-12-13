@@ -5,7 +5,10 @@ from gwbench import snr
 import antenna_pattern_np as gw_ap
 from pycbc.types import FrequencySeries
 from pycbc.filter import match
+from pycbc import pnutils
 import pandas as pd
+import astropy.units as u
+from astropy.cosmology import Planck18, z_at_value
 
 import matplotlib.pyplot as plt
 import dill
@@ -105,10 +108,14 @@ param = param_list[param_index]
 
 inj_Mc = np.zeros(n_events)
 inj_eta = np.zeros(n_events)
+inj_m1 = np.zeros(n_events)
+inj_m2 = np.zeros(n_events)
 inj_DL = np.zeros(n_events)
+inj_z = np.zeros(n_events)
 inj_mtotal = np.zeros(n_events)
 inj_q = np.zeros(n_events)
 snrs = np.zeros(n_events)
+inspiral_t = np.zeros(n_events)
 stat_errs = np.zeros(n_events)
 full_bias = np.zeros(n_events)
 max_lams = np.zeros(n_events)
@@ -116,9 +123,9 @@ min_faiths = np.zeros(n_events)
 full_faiths = np.zeros(n_events)
 
 # lams = np.linspace(0., 0.15, 100)
-lams = np.logspace(-4., -0.5, 100)
+#lams = np.logspace(-4., -0.5, 100)
 
-errors_th_lam = np.zeros((n_events, len(lams)))
+#errors_th_lam = np.zeros((n_events, len(lams)))
 
 for i in range(n_events):
     print(f"Calculating bias for network {i+offset} ({i+1} of {n_events})")
@@ -147,7 +154,10 @@ for i in range(n_events):
 
     inj_Mc[i] = mchirp
     inj_eta[i] = eta
+    inj_m1[i] = m1
+    inj_m2[i] = m2
     inj_DL[i] = net1.inj_params["DL"]
+    inj_z[i] = z_at_value(Planck18.luminosity_distance, net1.inj_params["DL"] * u.Mpc)
     inj_mtotal[i] = mtotal
     inj_q[i] = q
 
@@ -172,49 +182,64 @@ for i in range(n_events):
             # Inner Product
             inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
 
-
         # Calculate the theoretical bias between IMRPhenomD and IMRPhenomXAS
         full_bias[i] = np.dot(cov_ap, inner_prod)[param_index]
 
 
-    for l, lam in enumerate(lams):
-        inner_prod = np.zeros(len(param_list))
+    # Calculate the max lambda (and min Faith) using hybrid waveforms
+    max_lam_index = 0
+    max_lam = 1.0
+    min_lam = 0.0
+    n_tries = 0
 
-        for d in range(len(network_spec)):
-            del_h_ap_all = net2.detectors[d].del_hf
-            del_params_j = list(del_h_ap_all.keys())
+    
+    sigma_param = np.abs(net2.errs[param])
+    
+    while (max_lam_index<2 or n_tries<3):
+        n_tries += 1
+        lams = np.linspace(min_lam, max_lam, 10)
+        errors_th_lam = np.zeros(len(lams))
 
-            hp_hyb, hc_hyb = get_hyb_wf(net2.hfp, net2.hfc, net1.hfp, net1.hfc, lam)
+        for l, lam in enumerate(lams):
+            inner_prod = np.zeros(len(param_list))
 
-            h_tr = waveform_to_det_response(hp_hyb, hc_hyb, net1.inj_params, net1.detectors[d])
-            h_ap = net2.detectors[d].hf
+            for d in range(len(network_spec)):
+                del_h_ap_all = net2.detectors[d].del_hf
+                del_params_j = list(del_h_ap_all.keys())
 
-            psd = net2.detectors[d].psd
-            freq_range = net2.detectors[d].f
-            df = freq_range[1] - freq_range[0]
+                hp_hyb, hc_hyb = get_hyb_wf(net2.hfp, net2.hfc, net1.hfp, net1.hfc, lam)
 
-            for j, parameter_j in enumerate(del_params_j):
-                del_h_ap_j = del_h_ap_all[parameter_j]  
-                # Inner Product
-                inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
+                h_tr = waveform_to_det_response(hp_hyb, hc_hyb, net1.inj_params, net1.detectors[d])
+                h_ap = net2.detectors[d].hf
+
+                psd = net2.detectors[d].psd
+                freq_range = net2.detectors[d].f
+                df = freq_range[1] - freq_range[0]
+
+                for j, parameter_j in enumerate(del_params_j):
+                    del_h_ap_j = del_h_ap_all[parameter_j]  
+                    # Inner Product
+                    inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
             
-        # Calculate the theoretical bias for chosen parameter
-        errors_th_lam[i,l] = np.dot(cov_ap, inner_prod)[param_index]
-        
-        # Stop calculating biases for higher lambda if Statistical error has already been exceeded.
-        if errors_th_lam[i,l] > net2.errs[param]:
-            errors_th_lam[i, l:] = errors_th_lam[i,l]
-            break
+             # Calculate the theoretical bias across parameters
+            errors_th_lam[l] = np.dot(cov_ap, inner_prod)[param_index]
 
-    sigma_mc = np.abs(net2.errs[param])
-    bias_mc = np.abs(errors_th_lam[i,:])
+            # Stop calculating biases for higher lambda if Statistical error has already been exceeded.
+            if np.abs(errors_th_lam[l]) > sigma_param:
+                errors_th_lam[l:] = errors_th_lam[l]
 
-    try:
-        max_lam = lams[np.where(bias_mc <= sigma_mc)[0][-1]]
-    except:
-        max_lam = lams[0]
+        bias_mc = np.abs(errors_th_lam)
+        max_lam_index = np.where(bias_mc > sigma_param)[0][0]
+        try:
+            max_lam = lams[max_lam_index]
+            min_lam = lams[max_lam_index - 1]
+        except:
+            max_lam = lams[1]
+            max_lam_index = 1
+            min_lam = lams[0]
 
-    #print(f"Max lambda for M={mtotal:.1f}, q={q:.1f} : {max_lam:.3f}")
+
+        #print(f"Max lambda for M={mtotal:.1f}, q={q:.1f} : {max_lam:.3f}")
 
     delta_f = net1.f[1] - net1.f[0]
     
@@ -235,8 +260,12 @@ for i in range(n_events):
    # print("calculating faithfulness the pycbc way")
     min_faith, index = match(hp1_pyc, hp_hyb_pyc, psd=psd, low_frequency_cutoff=net1.f[0])
     
+    # Compute the inspiral time in band using pycbc
+    f_low = net1.f[0]
+    ts_5hz,fs_5hz = pnutils.get_inspiral_tf(0.,m1,m2,0.,0.,f_low)
+    inspiral_t[i] = -ts_5hz[0]
 
-    stat_errs[i] = sigma_mc
+    stat_errs[i] = sigma_param
     max_lams[i] = max_lam
     min_faiths[i] = min_faith
     full_faiths[i] = full_faith
@@ -251,10 +280,14 @@ df =  pd.DataFrame()
 df['Mc'] = inj_Mc
 df['eta'] = inj_eta
 df['DL'] = inj_DL
+df['z'] = inj_z
+df['m1'] = inj_m1
+df['m2'] = inj_m2
 df['M_tot'] = inj_mtotal
 df['q'] = inj_q
 df['full_faith'] = full_faiths
 df['snr'] = snrs
+df['inspiral_t'] = inspiral_t
 df[param+'_full_bias'] = full_bias
 df[param+'_stat_err'] = stat_errs
 df[param+'_max_lam'] = max_lams
