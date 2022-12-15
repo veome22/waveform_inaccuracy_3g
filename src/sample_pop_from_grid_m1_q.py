@@ -104,8 +104,9 @@ redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
 if m_tot is None:
     mass1 = np.random.uniform(m_min, m_max, num_injs)
     mass2 = np.random.uniform(m_min, mass1, num_injs)
-else:
-    q = np.random.uniform(q_min, q_max, num_injs)
+else: # sample q in discrete steps
+    q_range = np.geomspace(q_min, q_max, num=10)
+    q = np.random.choice(q_range, size=num_injs)
     mass1 = m_tot/(q+1.0)
     mass2 = m_tot * (q/(q+1.0))
     
