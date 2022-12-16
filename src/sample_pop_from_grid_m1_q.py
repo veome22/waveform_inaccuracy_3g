@@ -76,7 +76,7 @@ parser.add_argument('--mmax', default="100.0",  type=float, help='maximum mass i
 
 parser.add_argument('--mtot', default=None,  type=float, help='total binary mass in Solar Mass (default: None) If set, will ignore mmin and mmax')
 parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
-parser.add_argument('--qmax', default="1.0",  type=float, help='maximum mass ratio (q) (default: 1.0)')
+parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
 
 parser.add_argument('--DL', default="1000.0",  type=float, help='luminosity distance of event in Mpc (default: 400.0, modeled after GW150914)')
 
