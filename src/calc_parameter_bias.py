@@ -121,6 +121,7 @@ full_bias = np.zeros(n_events)
 max_lams = np.zeros(n_events)
 min_faiths = np.zeros(n_events)
 full_faiths = np.zeros(n_events)
+max_lam_index_first = np.zeros(n_events)
 
 # lams = np.linspace(0., 0.15, 100)
 #lams = np.logspace(-4., -0.5, 100)
@@ -188,6 +189,7 @@ for i in range(n_events):
 
     # Calculate the max lambda (and min Faith) using hybrid waveforms
     max_lam_index = 0
+    # max_lam = np.minimum(1.0, 0.0005 * net1.inj_params["DL"]) ## arbitrary guess for max lambda
     max_lam = 1.0
     min_lam = 0.0
     n_tries = 0
@@ -195,9 +197,15 @@ for i in range(n_events):
     
     sigma_param = np.abs(net2.errs[param])
     
-    while (max_lam_index<2 or n_tries<3):
+    while (max_lam_index<5 or n_tries<5):
+        
+        # Save the index of the first time the max lambda is determined
+        # for 3G events the max lambda should typically be pretty small, so this index should be small
+        if n_tries==1:
+            max_lam_index_first = max_lam_index
+
         n_tries += 1
-        lams = np.linspace(min_lam, max_lam, 10)
+        lams = np.linspace(min_lam, max_lam, 20)
         errors_th_lam = np.zeros(len(lams))
 
         for l, lam in enumerate(lams):
@@ -227,16 +235,18 @@ for i in range(n_events):
             # Stop calculating biases for higher lambda if Statistical error has already been exceeded.
             if np.abs(errors_th_lam[l]) > sigma_param:
                 errors_th_lam[l:] = errors_th_lam[l]
+                break
 
         bias_mc = np.abs(errors_th_lam)
         max_lam_index = np.where(bias_mc > sigma_param)[0][0]
         try:
             max_lam = lams[max_lam_index]
-            min_lam = lams[max_lam_index - 1]
+            # min_lam = lams[max_lam_index - 1]
+    
         except:
             max_lam = lams[1]
             max_lam_index = 1
-            min_lam = lams[0]
+            # min_lam = lams[0]
 
 
         #print(f"Max lambda for M={mtotal:.1f}, q={q:.1f} : {max_lam:.3f}")
@@ -292,6 +302,7 @@ df[param+'_full_bias'] = full_bias
 df[param+'_stat_err'] = stat_errs
 df[param+'_max_lam'] = max_lams
 df[param+'_min_faith'] = min_faiths
+df[param+'_max_lam_index_first'] = max_lam_index_first
 
 df.to_csv(outfile, index=False)
 
