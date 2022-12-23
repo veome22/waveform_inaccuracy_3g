@@ -122,6 +122,8 @@ max_lams = np.zeros(n_events)
 min_faiths = np.zeros(n_events)
 full_faiths = np.zeros(n_events)
 max_lam_index_first = np.zeros(n_events)
+full_inner_prods = np.zeros(n_events)
+min_inner_prods = np.zeros(n_events)
 
 # lams = np.linspace(0., 0.15, 100)
 #lams = np.logspace(-4., -0.5, 100)
@@ -270,7 +272,15 @@ for i in range(n_events):
    # print("calculating faithfulness the pycbc way")
     min_faith, index = match(hp1_pyc, hp_hyb_pyc, psd=psd, low_frequency_cutoff=net1.f[0])
     
-    # Compute the inspiral time in band using pycbc
+   # Compute the inner product (unoptimized faithfulness)   
+    hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
+    hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
+    hyb_norm = np.sum((hp_hyb_pyc * np.conjugate(hp_hyb_pyc) / psd).data)
+
+    full_inner_prod = np.abs(np.dot(hp1_pyc,np.conjugate(hp2_pyc))) / np.abs(np.sqrt(hp1_norm*hp2_norm))
+    min_inner_prod = np.abs(np.dot(hp1_pyc,np.conjugate(hp_hyb_pyc))) / np.abs(np.sqrt(hp1_norm*hyb_norm))
+
+   # Compute the inspiral time in band using pycbc
     f_low = net1.f[0]
     ts_5hz,fs_5hz = pnutils.get_inspiral_tf(0.,m1,m2,0.,0.,f_low)
     inspiral_t[i] = -ts_5hz[0]
@@ -279,6 +289,8 @@ for i in range(n_events):
     max_lams[i] = max_lam
     min_faiths[i] = min_faith
     full_faiths[i] = full_faith
+    full_inner_prods[i] = full_inner_prod
+    min_inner_prods[i] = min_inner_prod
 
     #print(f"Min faithfulness for M={mtotal:.1f}, q={q:.1f} = {min_faith:.6f}\n")
 
@@ -303,6 +315,8 @@ df[param+'_stat_err'] = stat_errs
 df[param+'_max_lam'] = max_lams
 df[param+'_min_faith'] = min_faiths
 df[param+'_max_lam_index_first'] = max_lam_index_first
+df['full_inner_prod'] = full_inner_prods
+df[param+'_min_inner_prod'] = min_inner_prods
 
 df.to_csv(outfile, index=False)
 
