@@ -109,15 +109,13 @@ seed=42
 
 # sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
 redshifts = np.random.uniform(0.02, 50, num_injs) 
-DLs = cosmo.luminosity_distance(redshifts).value
+DLs = Planck18.luminosity_distance(redshifts).value
 
 # sample mass 1 from power law pdf
-m1_range = np.linspace(m_min, m_max, 1000)
-
+m1 = np.linspace(m_min, m_max, 1000)
 pdf_m1 = p_m1(m1, alpha, m_min, m_max)
 cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
 inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
-
 mass1 = inv_cdf_m1(np.random.rand(num_injs))
 
 # sample q uniformly between q_min and q_max
