@@ -277,8 +277,8 @@ for i in range(n_events):
     hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
     hyb_norm = np.sum((hp_hyb_pyc * np.conjugate(hp_hyb_pyc) / psd).data)
 
-    full_inner_prod = np.abs(np.dot(hp1_pyc,np.conjugate(hp2_pyc))) / np.abs(np.sqrt(hp1_norm*hp2_norm))
-    min_inner_prod = np.abs(np.dot(hp1_pyc,np.conjugate(hp_hyb_pyc))) / np.abs(np.sqrt(hp1_norm*hyb_norm))
+    full_inner_prod = np.abs(np.sum(hp1_pyc * np.conjugate(hp2_pyc)/psd).data) / np.abs(np.sqrt(hp1_norm*hp2_norm))
+    min_inner_prod = np.abs(np.sum(hp1_pyc * np.conjugate(hp_hyb_pyc)/psd).data) / np.abs(np.sqrt(hp1_norm*hyb_norm))
 
    # Compute the inspiral time in band using pycbc
     f_low = net1.f[0]
