@@ -83,6 +83,10 @@ parser.add_argument('-o', '--outputdir',  default="../data/powerlaw_3.5", type=s
 
 parser.add_argument('--mmin', default="5.0",  type=float, help='minimum mass in Solar Masses (default: 5.0)')
 parser.add_argument('--mmax', default="100.0",  type=float, help='maximum mass in Solar Mass (default: 100.0)')
+
+parser.add_argument('--zmin', default="0.02",  type=float, help='minimum redshift (default: 0.02)')
+parser.add_argument('--zmax', default="50.0",  type=float, help='maximum redshift (default: 50.0)')
+
 parser.add_argument('--alpha', default="-3.5",  type=float, help='power law exponent for m1 distribution (default: -3.5 bsaed on LIGO GWTC3 PP model)')
 
 
@@ -96,9 +100,15 @@ args = vars(parser.parse_args())
 
 num_injs = args["N"]
 output_path = args["outputdir"]
+
 m_min = args["mmin"]
 m_max = args["mmax"]
+
+z_min = args["zmin"]
+z_max = args["zmax"]
+
 alpha = args["alpha"]
+
 q_min = args["qmin"]
 q_max = args["qmax"]
 
@@ -107,8 +117,8 @@ offset = args["offset"]
 seed=42
 
 
-# sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
-redshifts = np.random.uniform(0.02, 50, num_injs) 
+# default: sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
+redshifts = np.random.uniform(z_min, z_max, num_injs) 
 DLs = Planck18.luminosity_distance(redshifts).value
 
 # sample mass 1 from power law pdf
