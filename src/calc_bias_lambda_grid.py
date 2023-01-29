@@ -128,6 +128,8 @@ inspiral_t = np.zeros(n_events)
 stat_errs = np.zeros(n_events)
 full_bias = np.zeros(n_events)
 full_inner_prods = np.zeros(n_events)
+
+lambdas = np.zeros((n_lam, n_events))
 bias_lambdas = np.zeros((n_lam, n_events))
 inner_prod_lambdas = np.zeros((n_lam, n_events))
 
@@ -195,6 +197,8 @@ for i in range(n_events):
     
     lams = np.linspace(min_lam, max_lam, n_lam)
     errors_th_lam = np.zeros(len(lams))
+
+    lambdas[:,i]=lams
 
     for l, lam in enumerate(lams):
         inner_prod = np.zeros(len(param_list))
@@ -278,9 +282,11 @@ df[param+'_full_bias'] = full_bias
 df[param+'_stat_err'] = stat_errs
 df['full_inner_prod'] = full_inner_prods
 
+lam_cols = ['lam_'+str(id) for id in range(n_lam)]
 bias_lam_cols = ['bias_'+str(id) for id in range(n_lam)]
 inner_prod_lam_cols = ['inner_'+str(id) for id in range(n_lam)]
 
+df[lam_cols] = lambdas.T
 df[bias_lam_cols] = bias_lambdas.T
 df[inner_prod_lam_cols] = inner_prod_lambdas.T
 
