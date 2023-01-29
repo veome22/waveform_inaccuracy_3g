@@ -195,7 +195,7 @@ for i in range(n_events):
 
     # Calculate the bias over the lambda grid using hybrid waveforms
     
-    lams = np.linspace(min_lam, max_lam, n_lam)
+    lams = np.geomspace(min_lam, max_lam, n_lam)
     errors_th_lam = np.zeros(len(lams))
 
     lambdas[:,i]=lams
