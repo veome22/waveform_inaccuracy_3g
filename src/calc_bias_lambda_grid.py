@@ -238,7 +238,7 @@ for i in range(n_events):
     hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
     hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
    
-    full_inner_prod = np.abs(np.dot(hp1_pyc,np.conjugate(hp2_pyc))) / np.abs(np.sqrt(hp1_norm*hp2_norm))
+    full_inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm))
 
     inner_prods = np.zeros(n_lam)
 
