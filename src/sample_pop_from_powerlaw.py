@@ -56,7 +56,7 @@ def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C'
 
     # calculate the network and detector Fisher matrices, condition numbers,
     # covariance matrices, error estimates, and inversion errors
-    net.calc_errors()
+    net.calc_errors(cond_sup=1e25)
 
     # calculate the 90%-credible sky area (in deg)
     net.calc_sky_area_90()
@@ -93,6 +93,9 @@ parser.add_argument('--alpha', default="-3.5",  type=float, help='power law expo
 parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
 parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
 
+parser.add_argument('--angle', default="1.047198",  type=float, help='angle for iota, ra, dec, psi (default: np.pi/3)')
+
+
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
 args = vars(parser.parse_args())
@@ -111,6 +114,8 @@ alpha = args["alpha"]
 
 q_min = args["qmin"]
 q_max = args["qmax"]
+
+angle = args["angle"]
 
 offset = args["offset"]
    
@@ -174,10 +179,10 @@ if __name__ == "__main__":
             'DL':    DLs[i],
             'tc':    0,
             'phic':  0,
-            'iota':  np.pi/3,
-            'ra':    np.pi/3,
-            'dec':   np.pi/3,
-            'psi':   np.pi/3,
+            'iota':  angle,
+            'ra':    angle,
+            'dec':   angle,
+            'psi':   angle,
             'gmst0': 0
             } 
 
