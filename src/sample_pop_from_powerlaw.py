@@ -93,8 +93,6 @@ parser.add_argument('--alpha', default="-3.5",  type=float, help='power law expo
 parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
 parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
 
-parser.add_argument('--angle', default="1.047198",  type=float, help='angle for iota, ra, dec, psi (default: np.pi/3)')
-
 
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
@@ -114,8 +112,6 @@ alpha = args["alpha"]
 
 q_min = args["qmin"]
 q_max = args["qmax"]
-
-angle = args["angle"]
 
 offset = args["offset"]
    
@@ -139,6 +135,10 @@ mass2 = mass1 * q
     
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
+
+# Sample angles
+iotas, ras, decs, psis = injections.angle_sampler(num_injs, seed)
+
 
 # Convert source frame masses to detector frame masses
 Mcs = Mcs * (1+redshifts)
@@ -179,10 +179,10 @@ if __name__ == "__main__":
             'DL':    DLs[i],
             'tc':    0,
             'phic':  0,
-            'iota':  angle,
-            'ra':    angle,
-            'dec':   angle,
-            'psi':   angle,
+            'iota':  iotas[i],
+            'ra':    ras[i],
+            'dec':   decs[i],
+            'psi':   psis[i],
             'gmst0': 0
             } 
 
