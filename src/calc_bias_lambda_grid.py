@@ -52,6 +52,9 @@ if n_events is None:
 
 n_events = min(n_events, n_networks_all-offset)
 
+if n_events < 0:
+    n_events = n_networks_all
+
 print(f"Reading {n_events} network objects, starting from network {offset}")
 
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
