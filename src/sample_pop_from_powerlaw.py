@@ -75,6 +75,19 @@ def p_m1(m1, alpha, m_min, m_max):
     return np.piecewise(m1, [(m1 < m_min), (m1 >= m_min)*(m1 < m_max), (m1 >= m_max)],
                         [0, lambda m1: N1*m1**alpha, 0])
 
+def p_z_madau_fragos(z, z_min, z_max):
+    '''
+    Return normalized z-distribution from the Madau Fragos (2017)
+    star formation rate density.
+    '''
+    term_1 = (1+z)**(2.6)
+    term_2 = 1 + ((1+z)/3.2)**(6.2)
+
+    psi = 0.01 * term_1/term_2
+    norm = np.sum(psi)
+    psi = psi/norm
+
+    return psi
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a power law in m1, and uniform in q.')
 
@@ -118,9 +131,18 @@ offset = args["offset"]
 seed=42
 
 
-# default: sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
-redshifts = np.random.uniform(z_min, z_max, num_injs) 
+## default: sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
+#redshifts = np.random.uniform(z_min, z_max, num_injs) 
+#DLs = Planck18.luminosity_distance(redshifts).value
+
+# sample redshifts from Madau Fragos (2017) pdf
+z_range = np.linspace(z_min, z_max, 1000)
+pdf_z = p_z_madau_fragos(z_range, z_min, z_max)
+cdf_z = integrate.cumulative_trapezoid(pdf_z, z_range, initial=0)
+inv_cdf_z = interpolate.interp1d(cdf_z / cdf_z[-1], z_range)
+redshifts = inv_cdf_z(np.random.rand(num_injs))
 DLs = Planck18.luminosity_distance(redshifts).value
+
 
 # sample mass 1 from power law pdf
 m1 = np.linspace(m_min, m_max, 1000)
