@@ -124,6 +124,10 @@ inj_m1 = np.zeros(n_events)
 inj_m2 = np.zeros(n_events)
 inj_DL = np.zeros(n_events)
 inj_z = np.zeros(n_events)
+
+stat_err_DL = np.zeros(n_events)
+stat_err_z = np.zeros(n_events)
+
 inj_mtotal = np.zeros(n_events)
 inj_q = np.zeros(n_events)
 snrs = np.zeros(n_events)
@@ -167,13 +171,18 @@ for i in range(n_events):
     inj_m2[i] = m2
     inj_DL[i] = net1.inj_params["DL"]
     inj_z[i] = z_at_value(Planck18.luminosity_distance, net1.inj_params["DL"] * u.Mpc)
+    
+    stat_err_z[i] = z_at_value(Planck18.luminosity_distance, (net1.inj_params["DL"] + net2.errs["DL"]) * u.Mpc) - inj_z[i]
+    stat_err_DL[i] = net2.errs["DL"]
+
     inj_mtotal[i] = mtotal
     inj_q[i] = q
 
     cov_ap = net2.cov
     
     sigma_param = np.abs(net2.errs[param])
-    
+    stat_err_DL[i] = net2.errs["DL"]
+
     # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     inner_prod = np.zeros(len(param_list))
 
@@ -280,6 +289,10 @@ df['m2'] = inj_m2
 df['M_tot'] = inj_mtotal
 df['q'] = inj_q
 df['snr'] = snrs
+
+df['DL_stat_err'] = stat_err_DL
+df['z_stat_err'] = stat_err_z
+
 df['inspiral_t'] = inspiral_t
 df[param+'_full_bias'] = full_bias
 df[param+'_stat_err'] = stat_errs
