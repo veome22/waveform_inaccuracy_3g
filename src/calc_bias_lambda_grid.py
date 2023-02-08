@@ -142,14 +142,23 @@ inner_prod_lambdas = np.zeros((n_lam, n_events))
 
 for i in range(n_events):
     print(f"Calculating bias for network {i+offset} ({i+1} of {n_events})")
-    with open(inputdir + f'/{i+offset}_xas_net', "rb") as fi:
-        net1 = dill.load(fi)
-        fi.close() 
+    try:
+        with open(inputdir + f'/{i+offset}_xas_net', "rb") as fi:
+            net1 = dill.load(fi)
+            fi.close() 
+    except:
+        print("Skipping...")
+        continue
 
-    with open(inputdir + f'/{i+offset}_d_net', "rb") as fi:
-        net2 = dill.load(fi)
-        fi.close()
-    
+    try:
+        with open(inputdir + f'/{i+offset}_d_net', "rb") as fi:
+            net2 = dill.load(fi)
+            fi.close()
+    except:
+        print("Skipping...")
+        continue
+
+
     if net2 is None:
         print("NoneType object found, skipping.")
         continue
