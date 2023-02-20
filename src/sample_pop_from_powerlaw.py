@@ -75,6 +75,18 @@ def p_m1(m1, alpha, m_min, m_max):
     return np.piecewise(m1, [(m1 < m_min), (m1 >= m_min)*(m1 < m_max), (m1 >= m_max)],
                         [0, lambda m1: N1*m1**alpha, 0])
 
+def inv_cdf_analytic(c, alpha, mmin, mmax):
+    '''
+    Analytically computed inverse CDF for the power law (for sampling m1)
+    alpha is defined as in the pdf above, such that p=m1^alpha
+    '''
+    term1 = np.power(mmax, 1+alpha) - np.power(mmin, 1+alpha)
+    term2 = np.power(mmin, 1+alpha)
+
+    return np.power((c*term1 + term2), (1/(1+alpha)))
+
+
+
 def p_z_madau_fragos(z, z_min, z_max):
     '''
     Return normalized z-distribution from the Madau Fragos (2017)
@@ -131,7 +143,8 @@ offset = args["offset"]
 seed=42
 
 
-## default: sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
+# SAMPLE REDSHIFTS
+## old behavior: sample redshifts uniormly in [0.02, 50] based on Bohranian & Sathyaprakash (2022)
 #redshifts = np.random.uniform(z_min, z_max, num_injs) 
 #DLs = Planck18.luminosity_distance(redshifts).value
 
@@ -144,13 +157,19 @@ redshifts = inv_cdf_z(np.random.rand(num_injs))
 DLs = Planck18.luminosity_distance(redshifts).value
 
 
-# sample mass 1 from power law pdf
-m1 = np.geomspace(m_min, m_max, 1000000)
-pdf_m1 = p_m1(m1, alpha, m_min, m_max)
-cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
-inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
-mass1 = inv_cdf_m1(np.random.rand(num_injs))
+# SAMPLE M1
+## old behavior: sample mass 1 from numerical power law pdf with pre-defined bins
+#m1 = np.geomspace(m_min, m_max, 1000000)
+#pdf_m1 = p_m1(m1, alpha, m_min, m_max)
+#cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
+#inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
+#mass1 = inv_cdf_m1(np.random.rand(num_injs))
 
+# sample m1 from analytic formula
+mass1 = inv_cdf_analytic(np.random.rand(num_injs), alpha, m_min, m_max)
+
+
+# SAMPLE M2
 # sample q uniformly between q_min and q_max
 q = np.random.uniform(q_min, q_max, num_injs)
 mass2 = mass1 * q
