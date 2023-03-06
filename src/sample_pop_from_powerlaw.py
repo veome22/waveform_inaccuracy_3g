@@ -171,8 +171,9 @@ mass1 = inv_cdf_analytic(np.random.rand(num_injs), alpha, m_min, m_max)
 
 # SAMPLE M2
 # sample q uniformly between q_min and q_max
-q = np.random.uniform(q_min, q_max, num_injs)
-mass2 = mass1 * q
+#q = np.random.uniform(q_min, q_max, num_injs)
+#mass2 = mass1 * q
+mass2 = np.random.uniform(low=m_min, high=mass1)
     
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
