@@ -158,15 +158,15 @@ DLs = Planck18.luminosity_distance(redshifts).value
 
 
 # SAMPLE M1
-## old behavior: sample mass 1 from numerical power law pdf with pre-defined bins
-#m1 = np.geomspace(m_min, m_max, 1000000)
-#pdf_m1 = p_m1(m1, alpha, m_min, m_max)
-#cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
-#inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
-#mass1 = inv_cdf_m1(np.random.rand(num_injs))
+# sample mass 1 from numerical power law pdf with pre-defined bins
+m1 = np.geomspace(m_min, m_max, 1000000)
+pdf_m1 = p_m1(m1, alpha, m_min, m_max)
+cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
+inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
+mass1 = inv_cdf_m1(np.random.rand(num_injs))
 
-# sample m1 from analytic formula
-mass1 = inv_cdf_analytic(np.random.rand(num_injs), alpha, m_min, m_max)
+# # sample m1 from analytic formula
+# mass1 = inv_cdf_analytic(np.random.rand(num_injs), alpha, m_min, m_max)
 
 
 # SAMPLE M2
