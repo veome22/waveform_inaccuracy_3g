@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --job-name=powerlaw_alpha_3.5
-#SBATCH --time=2:00:00
-#SBATCH --nodes=2 
-#SBATCH --ntasks=96
+#SBATCH --job-name=powerlaw_alpha_3.5_m2_lim
+#SBATCH --time=18:00:00
+#SBATCH --nodes=10 
+#SBATCH --ntasks=480
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -11,5 +11,5 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 96 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_powerlaw.py -N 96 -o "../data/powerlaw_3.5" --alpha -3.5 --offset 0
+mpirun -n 480 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_powerlaw.py -N 9600 -o "../data/powerlaw_3.5_m2_lim" --alpha -3.5 --offset 19200
 
