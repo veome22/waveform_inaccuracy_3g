@@ -197,7 +197,6 @@ for i in mcmc_params:
     fname += f'{mcmc_params_list[i]}_'
 
 mcmc_file = output_dir + fname + f'N_{N_events}.h5'
-reset_mcmc = True
 
 
 priors_mcmc_low = []
@@ -220,16 +219,24 @@ ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
 
 p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
 
+reset_mcmc = True
 
 
 with MPIPool() as pool:
     if not pool.is_master():
         pool.wait()
         sys.exit(0)
+   
+    backend = emcee.backends.HDFBackend(mcmc_file)
+
+    if reset_mcmc:    
+        backend.reset(nwalkers, ndim)
     
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, pool=pool)#, backend=backend)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, pool=pool, backend=backend)
     start = time.time()
     sampler.run_mcmc(p0, N_MCMC, progress=True)
     end = time.time()
     print()
     print(f"MCMC computed in {end - start:.2f} seconds")
+
+
