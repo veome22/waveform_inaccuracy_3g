@@ -15,12 +15,13 @@ from power_law_funcs import *
 parser = argparse.ArgumentParser(description='Estimate the likelihood hyper-posterior for a given population of binary merger detections drawn from a power law in m1, and uniform in q.')
 
 parser.add_argument('--N_MCMC', default="100", type=int,  help='number of MCMC steps to take (default: 100)')
+parser.add_argument('--N_walkers', default=None, type=int,  help='number of walkers for MCMC (default: 2*n_params +1)')
 #parser.add_argument('--burnin', default="50", type=int,  help='number of burn-in steps for MCMC (default: 50)')
 
 parser.add_argument('--mcmc_params', default="0 1 2", type=int, nargs='+',  help='indices of parameters to run MCMC over, in the list [alpha, mmin, mmax] (default: 0 1 2)')
 
-priors_mcmc_low_all = [-4.2, 4.98, 55.0]
-priors_mcmc_high_all = [-3.8, 5.02, 65.0]
+priors_mcmc_low_all = [-3.6, 4.98, 55.0]
+priors_mcmc_high_all = [-3.4, 5.02, 65.0]
 
 parser.add_argument('--N_events', default="100", type=int,  help='number of events to estimate likelihoods for (default: 100)')
 
@@ -58,6 +59,7 @@ args = vars(parser.parse_args())
 # print(args)
 
 N_MCMC = args["N_MCMC"]
+nwalkers = args["N_walkers"]
 #burnin = args["burnin"]
 N_events = args["N_events"]
 
@@ -196,7 +198,7 @@ fname = '/mcmc_'
 for i in mcmc_params:
     fname += f'{mcmc_params_list[i]}_'
 
-mcmc_file = output_dir + fname + f'N_{N_events}.h5'
+mcmc_file = output_dir + fname + f'N_events_{N_events}_N_MCMC_{N_MCMC}.h5'
 
 
 priors_mcmc_low = []
@@ -210,12 +212,10 @@ for mcmc_param in mcmc_params:
     truths.append(truths_all[mcmc_param])
     labels.append(labels_all[mcmc_param])
 
-ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
-#backend = emcee.backends.HDFBackend(mcmc_file)
+ndim = len(mcmc_params)
 
-#if reset_mcmc:
-#    backend.reset(nwalkers, ndim)
-
+if nwalkers is None:
+    nwalkers = 2*len(mcmc_params)+1
 
 p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
 
