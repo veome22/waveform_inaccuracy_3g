@@ -24,8 +24,7 @@ parser.add_argument('--N_parallel', default="3", type=int,  help='number of para
 
 parser.add_argument('--mcmc_params', default="0 1 2", type=int, nargs='+',  help='indices of parameters to run MCMC over, in the list [alpha, mmin, mmax] (default: 0 1 2)')
 
-priors_mcmc_low_all = [-3.6, 4.98, 55.0]
-priors_mcmc_high_all = [-3.4, 5.02, 65.0]
+parser.add_argument('--mcmc_params_p0', default="-3.50 5.0 60.0", type=float, nargs='+',  help='initial values of parameters to run MCMC with, in the order [alpha, mmin, mmax] (default: -3.50 5.0 60.0)')
 
 parser.add_argument('--N_events', default="100", type=int,  help='number of events to estimate likelihoods for (default: 100)')
 
@@ -69,6 +68,7 @@ N_events = args["N_events"]
 N_parallel = args["N_parallel"]
 
 mcmc_params = args["mcmc_params"]
+mcmc_params_p0 = args["mcmc_params_p0"]
 
 alpha_prior_low = args["alpha_prior_low"]
 alpha_prior_high = args["alpha_prior_high"]
@@ -134,96 +134,6 @@ m1_min_int = mmin_prior_low
 m1_max_int = mmax_prior_high
 m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
-#posteriors_m2 = np.zeros((Nt, n_m1_int, n_m1_int))
-#for i in range(Nt):
-#    for j in range(n_m1_int):
-#        posteriors_m2[i,j] = bivariate_normal_dist(m_int_range[j], m_int_range, m1_mu_sampled[i], m2_mu_sampled[i], covariances[i])
-
-
-#def lnprob(hyper):
-#    alpha = hyper[0]
-#    m1_min_pow = hyper[1]
-#    m1_max_pow = hyper[2]
-#    beta = beta_inj
-#
-#    integrand_m2 = np.zeros((Nt, n_m1_int))
-#    prior_m1 = power(m_int_range, alpha, m1_min_pow, m1_max_pow)
-#    prior_m1 = prior_m1 / integrate.trapezoid(prior_m1, m_int_range)
-#
-#
-#    for j in range(n_m1_int):
-#        m2_int_range = np.linspace(m1_min_int, m_int_range[j], n_m2_int)
-#        priors_m2 = power(m2_int_range, beta, m1_min_pow, m_int_range[j])
-#        for i in range(Nt):
-#            posteriors_m2 = bivariate_normal_dist(m_int_range[j], m2_int_range, m1_mu_sampled[i], m2_mu_sampled[i], covariances[i])
-#            integrand_m2[i,j] = integrate.trapezoid(priors_m2 * posteriors_m2, m2_int_range)    
-#
-#    integrands = prior_m1 * integrand_m2
-#    integrals = integrate.trapezoid(integrands, m_int_range, axis=1)
-#    integrals = integrals[integrals!=0]
-#    
-#    return np.sum(np.log(integrals))
-#
-
-#def lnprob_parallel(hyper):
-#    alpha = hyper[0]
-#    m1_min_pow = hyper[1]
-#    m1_max_pow = hyper[2]
-#    beta = beta_inj
-#
-#
-#    # get number of processors and processor rank
-#    comm = MPI.COMM_WORLD
-#    size = comm.Get_size()
-#    rank = comm.Get_rank()
-#
-#
-#    count = Nt // size  # number of catchments for each process to analyze
-#    remainder = Nt % size  # extra catchments if n is not a multiple of size
-#
-#    if rank < size:  # processes with rank < remainder analyze one extra catchment
-#        start = rank * count  # index of first catchment to analyze
-#        stop = start + count  # index of last catchment to analyze
-#    else:
-#        start = rank * count
-#        stop = start + count + remainder
-#
-#    integrand_m2_local = np.zeros((stop-start, n_m1_int))
-#    prior_m1 = power(m_int_range, alpha, m1_min_pow, m1_max_pow)
-#    prior_m1 = prior_m1 / integrate.trapezoid(prior_m1, m_int_range)
-#         
-#    for j in range(n_m1_int):
-#        m2_int_range = np.linspace(m1_min_int, m_int_range[j], n_m2_int)
-#        priors_m2 = power(m2_int_range, beta, m1_min_pow, m_int_range[j])
-#
-#        for i in range(stop-start):
-#            index = start+i
-#            posteriors_m2 = bivariate_normal_dist(m_int_range[j], m2_int_range, m1_mu_sampled[index], m2_mu_sampled[index], covariances[index])
-#            integrand_m2_local[i,j] = integrate.trapezoid(priors_m2 * posteriors_m2, m2_int_range)   
-#   
-#    # send results to rank 0
-#    if rank > 0:
-#        comm.send(integrand_m2_local, dest=0, tag=14)  # send results to process 0
-#    
-#    elif rank == 0:
-#        integrand_m2_combined = np.copy(integrand_m2_local)  # initialize final results with results from process 0
-#        for i in range(1, size):  # determine the size of the array to be received from each process
-#            #if i < remainder:
-#            #    rank_size = count + 1
-#            #else:
-#            #    rank_size = count
-#            #tmp = np.empty((rank_size, n_m1_int))  # create empty array to receive results
-#            tmp = comm.recv(source=i, tag=14)  # receive results from the process
-#            print(tmp.shape)
-#            integrand_m2_combined = np.vstack((integrand_m2_combined, tmp))  # add the received results to the final results
-#        
-#  
-#        integrands = prior_m1 * integrand_m2_combined
-#        integrals = integrate.trapezoid(integrands, m_int_range, axis=1)
-#
-#        integrals = integrals[integrals!=0]
-#        
-#        return np.sum(np.log(integrals))
 
 def lnprob_parallel(index_range, hyper):
     alpha = hyper[0]
@@ -234,8 +144,8 @@ def lnprob_parallel(index_range, hyper):
     start = index_range[0]
     stop = index_range[1]
     N_posteriors = stop-start
-    print(index_range)
-    print(N_posteriors, "events being handled")
+    #print(index_range)
+    #print(N_posteriors, "events being handled")
 
     integrand_m2_local = np.zeros((N_posteriors, n_m1_int))
     prior_m1 = power(m_int_range, alpha, m1_min_pow, m1_max_pow)
@@ -252,7 +162,7 @@ def lnprob_parallel(index_range, hyper):
             integrand_m2_local[i,j] = integrate.trapezoid(priors_m2 * posteriors_m2, m2_int_range)
     
     end_loop = time.time()
-    print(f"Loop with {N_posteriors} events completed in {end_loop - start_loop:.3f} s")
+    #print(f"Loop with {N_posteriors} events completed in {end_loop - start_loop:.3f} s")
 
     integrands = prior_m1 * integrand_m2_local
     integrals = integrate.trapezoid(integrands, m_int_range, axis=1)
@@ -304,21 +214,16 @@ def population_posterior(hyper):
             for res in executor.map(lnprob_parallel, indices, hyper_map):
                 result += res
 
-        #executor = MPIPoolExecutor(max_workers=N_parallel)
-        #integral_vals = executor.map(lnprob_parallel, indices, hyper_map)
-        #executor.shutdown()
-
-        #result = 0.0
-        #for integral in integral_vals:
-        #    result += integral
-    
         return result
     
 
 mcmc_params_list = ['alpha', 'm1_min', 'm1_max']
 truths_all=[alpha_inj, mmin_inj, mmax_inj]
-#priors_mcmc_low_all = [-4.2, 4.98, 55.0]
-#priors_mcmc_high_all = [-3.8, 5.02, 65.0]
+
+diffs = [0.1, 0.05, 5.0]
+priors_mcmc_low_all = [x-y for x, y in zip(mcmc_params_p0, diffs)]
+priors_mcmc_high_all = [x+y for x, y in zip(mcmc_params_p0, diffs)]
+
 labels_all=[r"$\alpha$", r"$m_{\rm min}$", r"$m_{\rm max}$"]
 
 # set which parameters to run MCMC for
@@ -340,16 +245,6 @@ for mcmc_param in mcmc_params:
     truths.append(truths_all[mcmc_param])
     labels.append(labels_all[mcmc_param])
 
-#ndim = len(mcmc_params)
-
-#if nwalkers is None:
-#    nwalkers = 2*len(mcmc_params)+1
-#p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
-#reset_mcmc = True
-#backend = emcee.backends.HDFBackend(mcmc_file)
-#sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
-#state = sampler.run_mcmc(p0, N_MCMC, progress=True)
-
 
 if __name__ == "__main__":
 
@@ -369,41 +264,16 @@ if __name__ == "__main__":
     m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
 
-    #ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
+    ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
 
-    #backend = emcee.backends.HDFBackend(mcmc_file)
-    #backend.reset(nwalkers, ndim)
+    backend = emcee.backends.HDFBackend(mcmc_file)
+    backend.reset(nwalkers, ndim)
 
-    ## Initialize the sampler
-    #sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior)
-    #p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
+    # Initialize the sampler
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
+    p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
     
-    #state = sampler.run_mcmc(p0, N_MCMC, progress=True)
-    hyper_test = [-3.5, 4.97]
+    state = sampler.run_mcmc(p0, N_MCMC, progress=True)
 
-    start = time.time()
-    print(population_posterior(hyper_test))
-    end = time.time()
-
-    print(f"Time: {end-start:.5f} s")
-
-
-## Parallel MCMC (walkers are parallel)
-#with MPIPool() as pool:
-#    if not pool.is_master():
-#        pool.wait()
-#        sys.exit(0)
-#   
-#    backend = emcee.backends.HDFBackend(mcmc_file)
-#
-#    if reset_mcmc:    
-#        backend.reset(nwalkers, ndim)
-#    
-#    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, pool=pool, backend=backend)
-#    start = time.time()
-#    sampler.run_mcmc(p0, N_MCMC, progress=True)
-#    end = time.time()
-#    print()
-#    print(f"MCMC computed in {end - start:.2f} seconds")
 
 
