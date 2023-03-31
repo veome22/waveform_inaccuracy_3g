@@ -7,10 +7,13 @@ import time
 import emcee
 import glob
 import sys
-from schwimmbad import MPIPool
-from mpi4py.futures import MPIPoolExecutor
+
+#from schwimmbad import MPIPool
+#from mpi4py.futures import MPIPoolExecutor
+
 from power_law_funcs import *
 
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 parser = argparse.ArgumentParser(description='Estimate the likelihood hyper-posterior for a given population of binary merger detections drawn from a power law in m1, and uniform in q.')
 
@@ -223,8 +226,6 @@ m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 #        return np.sum(np.log(integrals))
 
 def lnprob_parallel(index_range, hyper):
-    print("computing integral with hyper:", hyper, ", indices:", index_range)
-    
     alpha = hyper[0]
     m1_min_pow = hyper[1]
     m1_max_pow = hyper[2]
@@ -233,15 +234,15 @@ def lnprob_parallel(index_range, hyper):
     start = index_range[0]
     stop = index_range[1]
     N_posteriors = stop-start
+    print(index_range)
+    print(N_posteriors, "events being handled")
 
     integrand_m2_local = np.zeros((N_posteriors, n_m1_int))
     prior_m1 = power(m_int_range, alpha, m1_min_pow, m1_max_pow)
     prior_m1 = prior_m1 / integrate.trapezoid(prior_m1, m_int_range)
     
-
+    start_loop = time.time()
     for j in range(n_m1_int):
-        #print("entered m1 loop")
-        
         m2_int_range = np.linspace(m1_min_int, m_int_range[j], n_m2_int)
         priors_m2 = power(m2_int_range, beta, m1_min_pow, m_int_range[j])
 
@@ -249,6 +250,9 @@ def lnprob_parallel(index_range, hyper):
             index = start+i
             posteriors_m2 = bivariate_normal_dist(m_int_range[j], m2_int_range, m1_mu_sampled[index], m2_mu_sampled[index], covariances[index])
             integrand_m2_local[i,j] = integrate.trapezoid(priors_m2 * posteriors_m2, m2_int_range)
+    
+    end_loop = time.time()
+    print(f"Loop with {N_posteriors} events completed in {end_loop - start_loop:.3f} s")
 
     integrands = prior_m1 * integrand_m2_local
     integrals = integrate.trapezoid(integrands, m_int_range, axis=1)
@@ -295,14 +299,19 @@ def population_posterior(hyper):
         # add the remaining events to the last processpr
         indices[-1][1] = indices[-1][1]+remainder
         
-        executor = MPIPoolExecutor(max_workers=N_parallel)
-        integral_vals = executor.map(lnprob_parallel, indices, hyper_map)
-        executor.shutdown()
-        
         result = 0.0
-        for integral in integral_vals:
-            result += integral
+        with ProcessPoolExecutor(max_workers=N_parallel) as executor:
+            for res in executor.map(lnprob_parallel, indices, hyper_map):
+                result += res
 
+        #executor = MPIPoolExecutor(max_workers=N_parallel)
+        #integral_vals = executor.map(lnprob_parallel, indices, hyper_map)
+        #executor.shutdown()
+
+        #result = 0.0
+        #for integral in integral_vals:
+        #    result += integral
+    
         return result
     
 
@@ -342,7 +351,6 @@ for mcmc_param in mcmc_params:
 #state = sampler.run_mcmc(p0, N_MCMC, progress=True)
 
 
-
 if __name__ == "__main__":
 
     # Sample m1 and m2 from the data
@@ -361,14 +369,14 @@ if __name__ == "__main__":
     m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
 
-    ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
+    #ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
 
     #backend = emcee.backends.HDFBackend(mcmc_file)
     #backend.reset(nwalkers, ndim)
 
-    # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior)
-    p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
+    ## Initialize the sampler
+    #sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior)
+    #p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
     
     #state = sampler.run_mcmc(p0, N_MCMC, progress=True)
     hyper_test = [-3.5, 4.97]
