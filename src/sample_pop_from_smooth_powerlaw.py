@@ -115,6 +115,8 @@ parser.add_argument('-N', default="48", type=int,  help='number of merger events
 parser.add_argument('-o', '--outputdir',  default="../data/powerlaw_3.5", type=str,  help='directory of output networks (default: ../data/powerlaw_3.5)')
 
 parser.add_argument('--mmin', default="5.0",  type=float, help='minimum mass in Solar Masses (default: 5.0)')
+parser.add_argument('--mmin_lim', default="3.0",  type=float, help='minimum mass for smoothed power-law in Solar Masses (default: 3.0)')
+
 parser.add_argument('--mmax', default="60.0",  type=float, help='maximum mass in Solar Mass (default: 60.0)')
 
 parser.add_argument('--eta', default="50.0",  type=float, help='Butterworth filter smoothing parameter, to be applied at the low end of the primary mass population (default: 50.0)')
@@ -138,6 +140,7 @@ num_injs = args["N"]
 output_path = args["outputdir"]
 
 m_min = args["mmin"]
+m_min_lim = args["mmin_lim"]
 m_max = args["mmax"]
 m_eta = args["eta"]
 
@@ -169,8 +172,8 @@ DLs = Planck18.luminosity_distance(redshifts).value
 
 
 # SAMPLE M1
-m1 = np.geomspace(m_min * 0.2, m_max, 1000000)
-pdf_m1 = butterworth(m1, m_min, m_eta) * power(m1, alpha, m_min, m_max)
+m1 = np.geomspace(m_min_lim, m_max, 1000000)
+pdf_m1 = butterworth(m1, m_min, m_eta) * power(m1, alpha, m_min_lim, m_max)
 pdf_m1 = pdf_m1/integrate.trapezoid(pdf_m1, m1) # make sure that the pdf is normalized
 cdf_m1 = integrate.cumulative_trapezoid(pdf_m1, m1, initial=0)
 inv_cdf_m1 = interpolate.interp1d(cdf_m1 / cdf_m1[-1], m1)
