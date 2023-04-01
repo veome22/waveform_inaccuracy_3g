@@ -181,7 +181,7 @@ mass1 = inv_cdf_m1(np.random.rand(num_injs))
 
 
 # SAMPLE M2
-mass2 = np.random.uniform(low=m_min, high=mass1)
+mass2 = np.random.uniform(low=m_min_lim, high=mass1)
     
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
