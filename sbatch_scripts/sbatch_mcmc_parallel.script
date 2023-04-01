@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --job-name=mcmc_parallel_m2_lim
-#SBATCH --time=10:00:00
-#SBATCH --nodes=1 
-#SBATCH --ntasks=48
+#SBATCH --time=40:00:00
+#SBATCH --nodes=5 
+#SBATCH --ntasks=240
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -11,4 +11,4 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 48 python ~/scratch16-berti/3G_systematics_veome/src/run_mcmc_powerlaw.py --N_MCMC 2000 --mcmc_params 0 1 -i "../output/powerlaw_3.5_lams_m2_lim" -o "../mcmc/powerlaw_3.5_m2_lim" --N_events 100 --N_walkers 48
+python ~/scratch16-berti/3G_systematics_veome/src/run_mcmc_powerlaw.py --N_MCMC 2000 --mcmc_params 0 1 2 --mcmc_params_p0 -3.5 5.0 60.0 -i "../output/powerlaw_3.5_lams_m2_lim" -o "../mcmc/powerlaw_3.5_m2_lim" --N_events 9000 --N_parallel 240 --N_walkers 20

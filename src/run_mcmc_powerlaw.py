@@ -24,7 +24,7 @@ parser.add_argument('--N_parallel', default="3", type=int,  help='number of para
 
 parser.add_argument('--mcmc_params', default="0 1 2", type=int, nargs='+',  help='indices of parameters to run MCMC over, in the list [alpha, mmin, mmax] (default: 0 1 2)')
 
-parser.add_argument('--mcmc_params_p0', default="-3.50 5.0 60.0", type=float, nargs='+',  help='initial values of parameters to run MCMC with, in the order [alpha, mmin, mmax] (default: -3.50 5.0 60.0)')
+parser.add_argument('--mcmc_params_p0', default="[-3.50, 5.0, 60.0]", type=float, nargs='+',  help='initial values of parameters to run MCMC with, in the order [alpha, mmin, mmax] (default: -3.50 5.0 60.0)')
 
 parser.add_argument('--N_events', default="100", type=int,  help='number of events to estimate likelihoods for (default: 100)')
 
@@ -263,8 +263,9 @@ if __name__ == "__main__":
     m1_max_int = mmax_prior_high
     m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
-
-    ndim, nwalkers = len(mcmc_params), 2*len(mcmc_params)+1
+    ndim = len(mcmc_params)
+    if nwalkers is None:
+        nwalkers = 2*len(mcmc_params)+1
 
     backend = emcee.backends.HDFBackend(mcmc_file)
     backend.reset(nwalkers, ndim)
