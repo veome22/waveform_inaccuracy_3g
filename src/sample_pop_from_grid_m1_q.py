@@ -82,6 +82,13 @@ parser.add_argument('--DL', default="1000.0",  type=float, help='luminosity dist
 
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
+parser.add_argument('--approximant1', default="IMRPhenomXAS",  type=str, help='Approximant to use for reference waveform')
+parser.add_argument('--approximant2', default="IMRPhenomD",  type=str, help='Approximant to use for other waveform')
+
+parser.add_argument('--suffix1', default="xas",  type=str, help='filename suffix to use for reference waveform')
+parser.add_argument('--suffix2', default="d",  type=str, help='filename suffix to use for other waveform')
+
+
 args = vars(parser.parse_args())
 # print(args)
 
@@ -96,7 +103,13 @@ q_max = args["qmax"]
 
 DL = args["DL"]
 offset = args["offset"]
-   
+
+approximant1 = args["approximant1"]
+approximant2 = args["approximant2"]
+
+suffix1 = args["suffix1"]
+suffix2 = args["suffix2"]
+
 seed=42
 
 redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
@@ -161,18 +174,18 @@ if __name__ == "__main__":
 
         sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}")
         
-        net2 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomD')
+        net2 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2)
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
-            with open(f'{output_path}/{offset+i}_xas_net', "wb") as fi:
+            with open(f'{output_path}/{offset+i}_{suffix1}_net', "wb") as fi:
                 dill.dump(None, fi)
-            with open(f'{output_path}/{offset+i}_d_net', "wb") as fi:
+            with open(f'{output_path}/{offset+i}_{suffix2}_net', "wb") as fi:
                 dill.dump(None, fi)
         else:        
-            net1 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomXAS')
-            net1.save_network(f'{output_path}/{offset+i}_xas_net')
-            net2.save_network(f'{output_path}/{offset+i}_d_net')    
+            net1 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
+            net1.save_network(f'{output_path}/{offset+i}_{suffix1}_net')
+            net2.save_network(f'{output_path}/{offset+i}_{suffix2}_net')    
     
     end = time.time()
 
