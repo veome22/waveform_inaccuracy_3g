@@ -15,6 +15,9 @@ parser.add_argument('-m', '--mtot',  default="5", type=int,  help='mtot (default
 
 parser.add_argument('-i', '--inputdir', default="../data/mtot_5_grid_DL_1000",  type=str, help='input directory of network files (default: ../data/mtot_5_grid_DL_1000')
 
+parser.add_argument('--suffix1', default="xas",  type=str, help='suffix name of network files for approximant 1 (default: xas')
+parser.add_argument('--suffix2', default="d",  type=str, help='suffix name of network files for approximant 2 (default: d')
+
 
 args = vars(parser.parse_args())
 
@@ -25,6 +28,9 @@ mtot = args["mtot"]
 #offset = args["offset"]
 inputdir = args["inputdir"]
 params = [0,1] # [Mc, eta]
+suffix1 = args["suffix1"]
+suffix2 = args["suffix2"]
+
 
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
 param_list = deriv_symbs_string.split()
@@ -42,8 +48,8 @@ for i, task in enumerate(range(n_parallel)):
     param = param_list[i]
     outfile_name = f"mtot_{mtot}_{param}_grid_DL_1000.csv"
     
-    print(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name}')
-    os.system(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name}')
+    print(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name} --suffix1 {suffix1} --suffix2 {suffix2}')
+    os.system(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name} --suffix1 {suffix1} --suffix2 {suffix2}')
 
 
 

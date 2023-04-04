@@ -26,6 +26,9 @@ parser.add_argument('-o', '--outfile', default="../output/uniform_statistics_Mc.
   
 parser.add_argument('-i', '--inputdir', default="../data/uniform_networks_f_max",  type=str, help='input directory of network files (default: ../data/uniform_networks_f_max')
 
+parser.add_argument('--suffix1', default="xas",  type=str, help='suffix name of network files for approximant 1 (default: xas')
+parser.add_argument('--suffix2', default="d",  type=str, help='suffix name of network files for approximant 2 (default: d')
+
 
 args = vars(parser.parse_args())
 # print(args)
@@ -36,7 +39,11 @@ outfile = args["outfile"]
 param_index = args["parameter"]
 inputdir = args["inputdir"]
 
-n_networks_all = len(glob.glob1(inputdir,"*_xas_net"))
+inputdir = args["inputdir"]
+suffix1 = args["suffix1"]
+suffix2 = args["suffix2"]
+
+n_networks_all = len(glob.glob1(inputdir,f"*_{suffix1}_net"))
 
 if n_events is None:
     n_events = n_networks_all
@@ -132,11 +139,11 @@ min_inner_prods = np.zeros(n_events)
 
 for i in range(n_events):
     print(f"Calculating bias for network {i+offset} ({i+1} of {n_events})")
-    with open(inputdir + f'/{i+offset}_xas_net', "rb") as fi:
+    with open(inputdir + f'/{i+offset}_{suffix1}_net', "rb") as fi:
         net1 = dill.load(fi)
         fi.close() 
 
-    with open(inputdir + f'/{i+offset}_d_net', "rb") as fi:
+    with open(inputdir + f'/{i+offset}_{suffix2}_net', "rb") as fi:
         net2 = dill.load(fi)
         fi.close()
     
