@@ -220,7 +220,7 @@ def population_posterior(hyper):
 mcmc_params_list = ['alpha', 'm1_min', 'm1_max']
 truths_all=[alpha_inj, mmin_inj, mmax_inj]
 
-diffs = [0.1, 0.05, 5.0]
+diffs = [0.1, 0.01, 5.0]
 priors_mcmc_low_all = [x-y for x, y in zip(mcmc_params_p0, diffs)]
 priors_mcmc_high_all = [x+y for x, y in zip(mcmc_params_p0, diffs)]
 
