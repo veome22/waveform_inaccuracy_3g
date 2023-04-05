@@ -68,7 +68,7 @@ def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C'
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a uniform grid in Mc and eta.')
 
-parser.add_argument('-N', default="48", type=int,  help='number of merger events to sample (default: 48)')
+parser.add_argument('-N', default="10", type=int,  help='number of bins in the mass-ratio (q) space (default: 10)')
 parser.add_argument('-o', '--outputdir',  default="../data/uniform_grid_m1_q", type=str,  help='directory of output networks (default: ../data/uniform_grid_m1_q)')
 
 parser.add_argument('--mmin', default="1.0",  type=float, help='minimum mass in Solar Masses (default: 1.0)')
@@ -78,7 +78,8 @@ parser.add_argument('--mtot', default=None,  type=float, help='total binary mass
 parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
 parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
 
-parser.add_argument('--DL', default="1000.0",  type=float, help='luminosity distance of event in Mpc (default: 400.0, modeled after GW150914)')
+parser.add_argument('--DL', default="400.0",  type=float, help='luminosity distance of event in Mpc (default: 400.0, modeled after GW150914)')
+parser.add_argument('--SNR', default="None",  type=float, help='SNR of event in Mpc. Overrides the DL argument if specified. (default: None')
 
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
@@ -102,6 +103,8 @@ q_min = args["qmin"]
 q_max = args["qmax"]
 
 DL = args["DL"]
+target_snr = args["SNR"]
+
 offset = args["offset"]
 
 approximant1 = args["approximant1"]
@@ -114,14 +117,9 @@ seed=42
 
 redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
 
-if m_tot is None:
-    mass1 = np.random.uniform(m_min, m_max, num_injs)
-    mass2 = np.random.uniform(m_min, mass1, num_injs)
-else: # sample q in discrete steps
-    q_range = np.geomspace(q_min, q_max, num=10)
-    q = np.random.choice(q_range, size=num_injs)
-    mass1 = m_tot/(q+1.0)
-    mass2 = m_tot * (q/(q+1.0))
+q_range = np.geomspace(q_min, q_max, num=num_injs)
+mass1 = m_tot/(q_range+1.0)
+mass2 = m_tot * (q_range/(q_range+1.0))
     
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
@@ -182,7 +180,7 @@ if __name__ == "__main__":
                 dill.dump(None, fi)
             with open(f'{output_path}/{offset+i}_{suffix2}_net', "wb") as fi:
                 dill.dump(None, fi)
-        else:        
+        else:
             net1 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
             net1.save_network(f'{output_path}/{offset+i}_{suffix1}_net')
             net2.save_network(f'{output_path}/{offset+i}_{suffix2}_net')    
