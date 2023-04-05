@@ -71,10 +71,7 @@ parser = argparse.ArgumentParser(description='Generate a list of binaries sample
 parser.add_argument('-N', default="10", type=int,  help='number of bins in the mass-ratio (q) space (default: 10)')
 parser.add_argument('-o', '--outputdir',  default="../data/uniform_grid_m1_q", type=str,  help='directory of output networks (default: ../data/uniform_grid_m1_q)')
 
-parser.add_argument('--mmin', default="1.0",  type=float, help='minimum mass in Solar Masses (default: 1.0)')
-parser.add_argument('--mmax', default="100.0",  type=float, help='maximum mass in Solar Mass (default: 100.0)')
-
-parser.add_argument('--mtot', default=None,  type=float, help='total binary mass in Solar Mass (default: None) If set, will ignore mmin and mmax')
+parser.add_argument('--mtot', default="10.0",  type=float, help='total binary mass in Solar Mass (default: 10.0)')
 parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
 parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
 
@@ -93,10 +90,8 @@ parser.add_argument('--suffix2', default="d",  type=str, help='filename suffix t
 args = vars(parser.parse_args())
 # print(args)
 
-num_injs = args["N"]
+n_q = args["N"]
 output_path = args["outputdir"]
-m_min = args["mmin"]
-m_max = args["mmax"]
 
 m_tot = args["mtot"]
 q_min = args["qmin"]
@@ -117,7 +112,7 @@ seed=42
 
 redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
 
-q_range = np.geomspace(q_min, q_max, num=num_injs)
+q_range = np.geomspace(q_min, q_max, num=n_q)
 mass1 = m_tot/(q_range+1.0)
 mass2 = m_tot * (q_range/(q_range+1.0))
     
@@ -145,7 +140,7 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    for i, task in enumerate(range(num_injs)):
+    for i, task in enumerate(range(n_q)):
         
         if i%size!=rank: continue
         
