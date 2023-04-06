@@ -64,7 +64,42 @@ def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C'
     return net
 
 
+def get_network_snr(inj_params, network_spec = ['aLIGO_H','aLIGO_L','aLIGO_V'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi', cond_num=1e25):
+    
+    # initialize the network with the desired detectors
+    net = network.Network(network_spec)
 
+    # choose the desired waveform 
+    wf_model_name = 'lal_bbh'
+    # pass the chosen waveform to the network for initialization
+    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
+
+    # pick the desired frequency range
+    f_min = 5.
+    f_max = 512.
+    d_f = 2**-4
+    f = np.arange(f_min, f_max, d_f)
+
+    # choose whether to take Earth's rotation into account
+    use_rot = 0
+
+    # pass all these variables to the network
+    net.set_net_vars(
+        f=f, inj_params=inj_params,
+        deriv_symbs_string=deriv_symbs_string,
+        use_rot=use_rot
+        )
+    
+    # setup antenna patterns, location phase factors, and PSDs
+    net.setup_ant_pat_lpf_psds()
+
+    # compute the detector responses
+    net.calc_det_responses()
+
+    # calculate the network and detector SNRs
+    net.calc_snrs()
+
+    return net
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a uniform grid in Mc and eta.')
 
@@ -110,7 +145,7 @@ suffix2 = args["suffix2"]
 
 seed=42
 
-redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
+#redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
 
 q_range = np.geomspace(q_min, q_max, num=n_q)
 mass1 = m_tot/(q_range+1.0)
@@ -119,9 +154,9 @@ mass2 = m_tot * (q_range/(q_range+1.0))
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
 
-# Convert source frame masses to detector frame masses
-Mcs = Mcs * (1+redshift)
-mtotals = (mass1+mass2) * (1+redshift)
+## Convert source frame masses to detector frame masses
+#Mcs = Mcs * (1+redshift)
+mtotals = (mass1+mass2) #* (1+redshift)
 
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
@@ -165,8 +200,20 @@ if __name__ == "__main__":
 
         sys.stdout.write("Event number %d (%d) being simulated by processor %d of %d\n" % (i, task, rank, size))
 
-        sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}")
+        sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}\n")
         
+        # Make sure the distance is set to achieve target SNR
+        if target_snr is not None:
+            # get the fiducial snr at DL
+            net1_snr = get_network_snr(inj_params=inj_params, network_spec=network_spec, approximant=approximant1)
+            
+            # calculate DL required to hit target_snr
+            new_DL = DL * (net1_snr.snr / target_snr)
+            
+            # adjust injected DL as needed
+            inj_params['DL'] = new_DL
+
+
         net2 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2)
 
         if net2.cov is None:
