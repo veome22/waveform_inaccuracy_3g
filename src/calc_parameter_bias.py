@@ -206,7 +206,7 @@ for i in range(n_events):
     
     sigma_param = np.abs(net2.errs[param])
     
-    while (max_lam_index<5 or n_tries<5):
+    while (max_lam_index<5 and n_tries<5):
         
         # Save the index of the first time the max lambda is determined
         # for 3G events the max lambda should typically be pretty small, so this index should be small
@@ -247,17 +247,16 @@ for i in range(n_events):
                 break
 
         bias_mc = np.abs(errors_th_lam)
-        max_lam_index = np.where(bias_mc > sigma_param)[0][0]
         try:
+            max_lam_index = np.where(bias_mc > sigma_param)[0][0]
             max_lam = lams[max_lam_index]
             # min_lam = lams[max_lam_index - 1]
     
         except:
             max_lam = lams[1]
             max_lam_index = 1
+            
             # min_lam = lams[0]
-
-
         #print(f"Max lambda for M={mtotal:.1f}, q={q:.1f} : {max_lam:.3f}")
 
     delta_f = net1.f[1] - net1.f[0]
