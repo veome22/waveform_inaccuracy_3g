@@ -24,7 +24,7 @@ parser.add_argument('--mcmc_params', default="0 1 2 4 5", type=int, nargs='+',  
 
 parser.add_argument('--mcmc_params_p0', default=None, type=float, nargs='+',  help='initial values of parameters to run MCMC with, in the order [alpha, mmin, mmax, m_min_lim, eta, beta] (default: -3.50 5.0 60.0 3.0 50.0, 0.0)')
 
-parser.add_argument('--N_events', default="100", type=int,  help='number of events to estimate likelihoods for (default: 100)')
+parser.add_argument('--N_events', default=None, type=int,  help='number of events to estimate likelihoods for (default: all)')
 
 
 parser.add_argument('--alpha_prior_low', default="-5.0",  type=float, help='lower limit on alpha prior (default: -5.0)')
@@ -132,6 +132,9 @@ df_mc = df_mc_raw
 df_eta = df_eta_raw
 
 
+if N_events is None:
+    N_events = len(df_mc)
+
 # Sample m1 and m2 from the data
 m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True)
 covariances = np.zeros((len(m1_mu_sampled), 2,2))
@@ -146,6 +149,33 @@ Nt = Ns
 m1_min_int = mmin_prior_low
 m1_max_int = mmax_prior_high
 m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
+
+
+
+@njit
+def bivariate_normal_dist_njit(m1, m2, mu1, mu2, cov00, cov01, cov11):
+    sig1 = np.sqrt(cov00)
+    sig2 = np.sqrt(cov11)
+    sig12 = cov01
+    rho = sig12 / (sig1 * sig2)
+    Z = ((m1-mu1)**2 / (sig1)**2) + ((m2-mu2)**2 / (sig2)**2) - ((2*rho*(m1-mu1)*(m2-mu2)) / (sig1*sig2))
+    A = 2*np.pi * sig1 * sig2 * np.sqrt(1-(rho**2))
+    return np.exp(-(Z / (2 * (1 - rho**2)))) / A
+
+@njit
+def integrate_trap_njit(y,x):
+    s = 0
+    for i in range(1, x.shape[0]):
+        s += (x[i]-x[i-1])*(y[i]+y[i-1])
+    return s/2
+
+
+@njit
+def butterworth_njit(m1, m0, eta):
+    y=(1+ (m0/m1)**eta)**(-1)
+    norm = integrate_trap_njit(y, m1)
+    return (1+ (m0/m1)**eta)**(-1) / norm
+
 
 
 def lnprob_parallel(index_range, hyper):
@@ -168,7 +198,7 @@ def lnprob_parallel(index_range, hyper):
     prior_m1 = prior_m1 / integrate_trap_njit(prior_m1, m1_int_range)
     
     
-    start_loop = time.time()
+   # start_loop = time.time()
     for j in range(n_m1_int):
         m2_int_range = np.linspace(m1_min_int, m1_int_range[j], n_m2_int)
         priors_m2 = power(m2_int_range, beta, m1_min_pow, m1_int_range[j])
@@ -182,7 +212,7 @@ def lnprob_parallel(index_range, hyper):
             posteriors_m2 = bivariate_normal_dist_njit(m1_int_range[j], m2_int_range, m1_mu_sampled[index], m2_mu_sampled[index], covariances[index][0,0], covariances[index][0,1], covariances[index][1,1])
             integrand_m2_local[i,j] = integrate_trap_njit(priors_m2 * posteriors_m2, m2_int_range)
     
-    end_loop = time.time()
+    #end_loop = time.time()
     #print(f"Loop with {N_posteriors} events completed in {end_loop - start_loop:.3f} s")
 
     integrands = prior_m1 * integrand_m2_local
