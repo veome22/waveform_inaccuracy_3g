@@ -10,6 +10,7 @@ parser.add_argument('-o', '--outputdir',  default="../output/mtot_q_grids", type
 
 parser.add_argument('-m', '--mtot',  default="5", type=int,  help='mtot (default: 5)')
 
+parser.add_argument('--SNR',  default="100", type=float,  help='SNR (default: 100)')
 #parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 #parser.add_argument('-p', '--parameters', default="0", type=int,  help='parameter to compute errors for (default: 0 : Mc)')
 
@@ -25,6 +26,7 @@ args = vars(parser.parse_args())
 n_parallel = args["nparallel"]
 output_path = args["outputdir"]
 mtot = args["mtot"]
+snr = args["SNR"]
 #offset = args["offset"]
 inputdir = args["inputdir"]
 params = [0,1] # [Mc, eta]
@@ -46,7 +48,7 @@ for i, task in enumerate(range(n_parallel)):
     if i%size!=rank: continue
 
     param = param_list[i]
-    outfile_name = f"mtot_{mtot}_{param}_grid_DL_1000.csv"
+    outfile_name = f"mtot_{mtot}_{param}_grid_SNR_{snr}.csv"
     
     print(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name} --suffix1 {suffix1} --suffix2 {suffix2}')
     os.system(f'python calc_parameter_bias.py -p {i} -i {inputdir} -o {output_path}/{outfile_name} --suffix1 {suffix1} --suffix2 {suffix2}')
