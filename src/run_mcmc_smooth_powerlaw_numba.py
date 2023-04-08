@@ -53,6 +53,8 @@ parser.add_argument('-i', '--inputdir',  default="../output/powerlaw_3.5_lams_m2
 
 parser.add_argument('-o', '--outputdir',  default="../mcmc/powerlaw_3.5_m2_lim", type=str,  help='directory of mcmc sampler output (default: ../mcmc/powerlaw_3.5_m2_lim)')
 
+parser.add_argument('-r', '--reset',  default=False, type=bool,  help='reset mcmc sampler output instead of adding steps (default: False)')
+
 
 parser.add_argument('--alpha_inj', default="-3.5",  type=float, help='slope of m1 power law (default: -3.5)')
 parser.add_argument('--mmin_inj', default="5.0",  type=float, help='minimum peak of primary mass in Solar Mass (default: 5.0)')
@@ -93,6 +95,7 @@ n_m2_int = args["n_m2_int"]
 
 input_dir = args["inputdir"]
 output_dir = args["outputdir"]
+reset = args["reset"]
 
 alpha_inj = args["alpha_inj"]
 mmin_inj = args["mmin_inj"]
@@ -288,9 +291,6 @@ fname = '/mcmc_'
 for i in mcmc_params:
     fname += f'{mcmc_params_list[i]}_'
 
-mcmc_file = output_dir + fname + f'N_events_{N_events}_N_MCMC_{N_MCMC}.h5'
-
-
 priors_mcmc_low = []
 priors_mcmc_high = []
 truths = []
@@ -324,8 +324,12 @@ if __name__ == "__main__":
     if nwalkers is None:
         nwalkers = 2*len(mcmc_params)+1
 
+    mcmc_file = output_dir + fname + f'N_events_{N_events}_N_walkers_{nwalkers}.h5'
+
     backend = emcee.backends.HDFBackend(mcmc_file)
-    backend.reset(nwalkers, ndim)
+    
+    if reset:
+        backend.reset(nwalkers, ndim)
 
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
