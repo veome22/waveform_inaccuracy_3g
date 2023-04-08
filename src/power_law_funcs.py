@@ -1,5 +1,5 @@
 import numpy as np
-
+from numba import njit
 
 
 
@@ -192,3 +192,31 @@ def bivariate_normal_dist(m1, m2, mu1, mu2, cov):
     A = 2*np.pi * sig1 * sig2 * np.sqrt(1-(rho**2))
 
     return np.exp(-(Z / (2 * (1 - rho**2)))) / A
+
+
+'''
+@njit
+def bivariate_normal_dist_njit(m1, m2, mu1, mu2, cov00, cov01, cov11):
+    sig1 = np.sqrt(cov00)
+    sig2 = np.sqrt(cov11)
+    sig12 = cov01
+    rho = sig12 / (sig1 * sig2)
+    Z = ((m1-mu1)**2 / (sig1)**2) + ((m2-mu2)**2 / (sig2)**2) - ((2*rho*(m1-mu1)*(m2-mu2)) / (sig1*sig2))
+    A = 2*np.pi * sig1 * sig2 * np.sqrt(1-(rho**2))
+    return np.exp(-(Z / (2 * (1 - rho**2)))) / A
+
+@njit
+def integrate_trap_njit(y,x):
+    s = 0
+    for i in range(1, x.shape[0]):
+        s += (x[i]-x[i-1])*(y[i]+y[i-1])
+    return s/2
+
+
+@njit
+def butterworth_njit(m1, m0, eta):
+    y=(1+ (m0/m1)**eta)**(-1)
+    norm = integrate_trap_njit(y, m1)
+    #return (1+ (m0/m1)**eta)**(-1) / norm
+
+'''
