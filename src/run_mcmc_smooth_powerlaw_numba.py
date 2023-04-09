@@ -37,7 +37,7 @@ parser.add_argument('--mmax_prior_low', default="40.0",  type=float, help='lower
 parser.add_argument('--mmax_prior_high', default="100.",  type=float, help='upper limit on mmax prior (default: 200.0)')
 
 parser.add_argument('--eta_prior_low', default="20.0",  type=float, help='lower limit on eta prior (default: 20.0)')
-parser.add_argument('--eta_prior_high', default="1000.",  type=float, help='upper limit on eta prior (default: 100.0)')
+parser.add_argument('--eta_prior_high', default="100.",  type=float, help='upper limit on eta prior (default: 100.0)')
 
 parser.add_argument('--beta_prior_low', default="-1.0",  type=float, help='lower limit on beta prior (default: -1.0)')
 parser.add_argument('--beta_prior_high', default="1.0",  type=float, help='upper limit on beta prior (default: 1.0)')
@@ -137,22 +137,22 @@ df_eta = df_eta_raw
 
 if N_events is None:
     N_events = len(df_mc)
-
-# Sample m1 and m2 from the data
-m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True)
-covariances = np.zeros((len(m1_mu_sampled), 2,2))
-
-# compute joint posteriors on m1, m2
-for i in range(len(m1_mu_sampled)):
-    covariances[i] =  [[m1_variance[i], m1_m2_covariance[i]], [m1_m2_covariance[i], m2_variance[i]]]
-
-Ns = len(m1_mu_sampled)
-Nt = Ns
-
-m1_min_int = mmin_prior_low
-m1_max_int = mmax_prior_high
-m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
-
+#
+## Sample m1 and m2 from the data
+#m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True)
+#covariances = np.zeros((len(m1_mu_sampled), 2,2))
+#
+## compute joint posteriors on m1, m2
+#for i in range(len(m1_mu_sampled)):
+#    covariances[i] =  [[m1_variance[i], m1_m2_covariance[i]], [m1_m2_covariance[i], m2_variance[i]]]
+#
+#Ns = len(m1_mu_sampled)
+#Nt = Ns
+#
+#m1_min_int = m_min_lim_inj
+#m1_max_int = mmax_prior_high
+#m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
+#
 
 
 @njit
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     Ns = len(m1_mu_sampled)
     Nt = Ns
 
-    m1_min_int = mmin_prior_low
+    m1_min_int = m_min_lim_inj
     m1_max_int = mmax_prior_high
     m1_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
