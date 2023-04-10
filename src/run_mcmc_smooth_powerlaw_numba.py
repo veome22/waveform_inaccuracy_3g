@@ -63,6 +63,8 @@ parser.add_argument('--m_min_lim_inj', default="3.0",  type=float, help='minimum
 parser.add_argument('--eta_inj', default="50.0",  type=float, help='turn-on factor of primary mass in Solar Mass (default: 50.0)')
 parser.add_argument('--beta_inj', default="0.0",  type=float, help='slope of m2 power law (default: 0.0)')
 
+parser.add_argument('--biased',  default=False, type=bool,  help='run mcmc over biased events (default: False)')
+parser.add_argument('--bias_index', default="19", type=int,  help='index of biased parameters in input files (default: 19)')
 
 
 
@@ -104,6 +106,8 @@ m_min_lim_inj = args["m_min_lim_inj"]
 eta_inj = args["eta_inj"]
 beta_inj = args["beta_inj"]
 
+biased = args["biased"]
+bias_index = args["bias_index"]
 
 # Read the event data
 
@@ -306,7 +310,7 @@ for mcmc_param in mcmc_params:
 if __name__ == "__main__":
 
     # Sample m1 and m2 from the data
-    m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True)
+    m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True, biased=biased, bias_index=bias_index)
     covariances = np.zeros((len(m1_mu_sampled), 2,2))
 
     # compute joint posteriors on m1, m2
