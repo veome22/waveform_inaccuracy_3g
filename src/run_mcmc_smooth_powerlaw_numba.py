@@ -27,8 +27,8 @@ parser.add_argument('--mcmc_params_p0', default=None, type=float, nargs='+',  he
 parser.add_argument('--N_events', default=None, type=int,  help='number of events to estimate likelihoods for (default: all)')
 
 
-parser.add_argument('--alpha_prior_low', default="-5.0",  type=float, help='lower limit on alpha prior (default: -5.0)')
-parser.add_argument('--alpha_prior_high', default="-2.0",  type=float, help='upper limit on alpha prior (default: -2.0)')
+parser.add_argument('--alpha_prior_low', default="-4.5",  type=float, help='lower limit on alpha prior (default: -5.0)')
+parser.add_argument('--alpha_prior_high', default="-2.7",  type=float, help='upper limit on alpha prior (default: -2.0)')
 
 parser.add_argument('--mmin_prior_low', default="4.5",  type=float, help='lower limit on mmin prior (default: 4.5)')
 parser.add_argument('--mmin_prior_high', default="5.5",  type=float, help='upper limit on mmin prior (default: 5.5)')
