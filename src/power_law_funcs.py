@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit
-
+import pycbc.conversions as conv
 
 
 def sample_m1_events(df_mc, df_eta, biased=False, bias_index=19, injected=False):
