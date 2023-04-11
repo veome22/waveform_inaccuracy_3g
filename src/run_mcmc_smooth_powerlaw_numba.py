@@ -44,7 +44,7 @@ parser.add_argument('--beta_prior_high', default="1.0",  type=float, help='upper
 
 
 
-parser.add_argument('--n_m1_int', default="800", type=int,  help='number of integration bins over m1 (default: 500)')
+parser.add_argument('--n_m1_int', default="500", type=int,  help='number of integration bins over m1 (default: 500)')
 parser.add_argument('--n_m2_int', default="300", type=int,  help='number of integration bins over m2 (default: 300)')
 
 
@@ -83,12 +83,16 @@ mcmc_params_p0 = args["mcmc_params_p0"]
 
 alpha_prior_low = args["alpha_prior_low"]
 alpha_prior_high = args["alpha_prior_high"]
+
 mmin_prior_low = args["mmin_prior_low"]
 mmin_prior_high = args["mmin_prior_high"]
+
 mmax_prior_low = args["mmax_prior_low"]
 mmax_prior_high = args["mmax_prior_high"]
+
 eta_prior_low = args["eta_prior_low"]
 eta_prior_high = args["eta_prior_high"]
+
 beta_prior_low = args["beta_prior_low"]
 beta_prior_high = args["beta_prior_high"]
 
@@ -141,23 +145,6 @@ df_eta = df_eta_raw
 
 if N_events is None:
     N_events = len(df_mc)
-#
-## Sample m1 and m2 from the data
-#m1_mu_sampled, m2_mu_sampled,  m1_variance, m2_variance, m1_m2_covariance = sample_m1_m2_events(df_mc[:N_events], df_eta[:N_events], injected=True)
-#covariances = np.zeros((len(m1_mu_sampled), 2,2))
-#
-## compute joint posteriors on m1, m2
-#for i in range(len(m1_mu_sampled)):
-#    covariances[i] =  [[m1_variance[i], m1_m2_covariance[i]], [m1_m2_covariance[i], m2_variance[i]]]
-#
-#Ns = len(m1_mu_sampled)
-#Nt = Ns
-#
-#m1_min_int = m_min_lim_inj
-#m1_max_int = mmax_prior_high
-#m_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
-#
-
 
 @njit
 def bivariate_normal_dist_njit(m1, m2, mu1, mu2, cov00, cov01, cov11):
@@ -192,24 +179,23 @@ def lnprob_parallel(index_range, hyper):
     m_min_lim = hyper[3]
     eta = hyper[4]
     beta = hyper[5]
-
+    
     start = index_range[0]
     stop = index_range[1]
     N_posteriors = stop-start
-    #print(index_range)
-    #print(N_posteriors, "events being handled")
 
     integrand_m2_local = np.zeros((N_posteriors, n_m1_int))
     
+    m1_int_range = np.geomspace(m_min_lim, m1_max_pow, n_m1_int) 
+
     prior_m1 = butterworth_njit(m1_int_range, m1_min_pow, eta) * power(m1_int_range, alpha, m_min_lim, m1_max_pow)
     prior_m1 = prior_m1 / integrate_trap_njit(prior_m1, m1_int_range)
     
-    
+
    # start_loop = time.time()
     for j in range(n_m1_int):
-        m2_int_range = np.linspace(m1_min_int, m1_int_range[j], n_m2_int)
-        priors_m2 = power(m2_int_range, beta, m1_min_pow, m1_int_range[j])
-        
+        m2_int_range = np.geomspace(m_min_lim, m1_int_range[j], n_m2_int)
+        priors_m2 = power(m2_int_range, beta, m_min_lim, m1_int_range[j])
         norm_p2 = integrate_trap_njit(priors_m2, m2_int_range)
         if norm_p2 != 0:
             priors_m2 = priors_m2/norm_p2
@@ -217,10 +203,14 @@ def lnprob_parallel(index_range, hyper):
         for i in range(N_posteriors):
             index = start+i
             posteriors_m2 = bivariate_normal_dist_njit(m1_int_range[j], m2_int_range, m1_mu_sampled[index], m2_mu_sampled[index], covariances[index][0,0], covariances[index][0,1], covariances[index][1,1])
+            
+            if (i==100) & (j==84):
+                print((m1_int_range[j], m2_int_range[100], m1_mu_sampled[index], m2_mu_sampled[index], covariances[index][0,0], covariances[index][0,1], covariances[index][1,1]))
             integrand_m2_local[i,j] = integrate_trap_njit(priors_m2 * posteriors_m2, m2_int_range)
     
     #end_loop = time.time()
     #print(f"Loop with {N_posteriors} events completed in {end_loop - start_loop:.3f} s")
+    
 
     integrands = prior_m1 * integrand_m2_local
     integrals = integrate.trapezoid(integrands, m1_int_range, axis=1)
@@ -320,21 +310,17 @@ if __name__ == "__main__":
     Ns = len(m1_mu_sampled)
     Nt = Ns
 
-    m1_min_int = m_min_lim_inj
-    m1_max_int = mmax_prior_high
-    m1_int_range = np.geomspace(m1_min_int, m1_max_int, n_m1_int)
 
     ndim = len(mcmc_params)
     if nwalkers is None:
         nwalkers = 2*len(mcmc_params)+1
-
+    
     mcmc_file = output_dir + fname + f'N_events_{N_events}_N_walkers_{nwalkers}.h5'
 
     backend = emcee.backends.HDFBackend(mcmc_file)
     
     if reset:
         backend.reset(nwalkers, ndim)
-
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
     p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
