@@ -193,7 +193,7 @@ def lnprob_parallel(index_range, hyper):
     
 
    # start_loop = time.time()
-    for j in range(n_m1_int):
+    for j in range(1,n_m1_int):
         m2_int_range = np.geomspace(m_min_lim, m1_int_range[j], n_m2_int)
         priors_m2 = power(m2_int_range, beta, m_min_lim, m1_int_range[j])
         norm_p2 = integrate_trap_njit(priors_m2, m2_int_range)
@@ -321,11 +321,13 @@ if __name__ == "__main__":
     
     if reset:
         backend.reset(nwalkers, ndim)
-    # Initialize the sampler
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
-    p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
+        # Initialize the sampler
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
+        p0 = np.random.uniform(low=priors_mcmc_low, high=priors_mcmc_high, size=(nwalkers,ndim))
     
-    state = sampler.run_mcmc(p0, N_MCMC, progress=True)
-
+        state = sampler.run_mcmc(p0, N_MCMC, progress=True)
+    else:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, population_posterior, backend=backend)
+        state = sampler.run_mcmc(None, N_MCMC, progress=True)
 
 
