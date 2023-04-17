@@ -203,9 +203,6 @@ def lnprob_parallel(index_range, hyper):
         for i in range(N_posteriors):
             index = start+i
             posteriors_m2 = bivariate_normal_dist_njit(m1_int_range[j], m2_int_range, m1_mu_sampled[index], m2_mu_sampled[index], covariances[index][0,0], covariances[index][0,1], covariances[index][1,1])
-            
-            if (i==100) & (j==84):
-                print((m1_int_range[j], m2_int_range[100], m1_mu_sampled[index], m2_mu_sampled[index], covariances[index][0,0], covariances[index][0,1], covariances[index][1,1]))
             integrand_m2_local[i,j] = integrate_trap_njit(priors_m2 * posteriors_m2, m2_int_range)
     
     #end_loop = time.time()
