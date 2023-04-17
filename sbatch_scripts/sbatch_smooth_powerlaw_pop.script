@@ -2,8 +2,8 @@
 
 #SBATCH --job-name=powerlaw_alpha_3.5_smooth
 #SBATCH --time=18:00:00
-#SBATCH --nodes=10 
-#SBATCH --ntasks=480
+#SBATCH --nodes=20 
+#SBATCH --ntasks=960
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -11,5 +11,5 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 480 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_smooth_powerlaw.py -N 9600 -o "../data/powerlaw_3.5_smooth" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --offset 0
+mpirun -n 960 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_smooth_powerlaw.py -N 38400 -o "../data/powerlaw_3.5_smooth" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --offset 86400
 
