@@ -187,7 +187,7 @@ for i in range(n_events):
     inj_mtotal[i] = mtotal
     inj_q[i] = q
 
-    cov_ap = net2.cov
+    #cov_ap = net2.cov
     
     sigma_param = np.abs(net2.errs[param])
     stat_err_DL[i] = net2.errs["DL"]
@@ -196,6 +196,7 @@ for i in range(n_events):
     inner_prod = np.zeros(len(param_list))
 
     for d in range(len(network_spec)):
+        cov_ap = np.linalg.inv(net2.detectors[d].fisher)
         del_h_ap_all = net2.detectors[d].del_hf
         del_params_j = list(del_h_ap_all.keys())
 
@@ -208,10 +209,10 @@ for i in range(n_events):
         for j, parameter_j in enumerate(del_params_j):
             del_h_ap_j = del_h_ap_all[parameter_j]
             # Inner Product
-            inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
+            inner_prod[j] = snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
 
         # Calculate the theoretical bias between IMRPhenomD and IMRPhenomXAS
-        full_bias[i] = np.dot(cov_ap, inner_prod)[param_index]
+        full_bias[i] += np.dot(cov_ap, inner_prod)[param_index]
 
 
     # Calculate the bias over the lambda grid using hybrid waveforms
@@ -225,6 +226,7 @@ for i in range(n_events):
         inner_prod = np.zeros(len(param_list))
 
         for d in range(len(network_spec)):
+            cov_ap = np.linalg.inv(net2.detectors[d].fisher)
             del_h_ap_all = net2.detectors[d].del_hf
             del_params_j = list(del_h_ap_all.keys())
 
@@ -240,10 +242,10 @@ for i in range(n_events):
             for j, parameter_j in enumerate(del_params_j):
                 del_h_ap_j = del_h_ap_all[parameter_j]  
                 # Inner Product
-                inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
+                inner_prod[j] = snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
         
-         # Calculate the theoretical bias across parameters
-        errors_th_lam[l] = np.dot(cov_ap, inner_prod)[param_index]
+            # Calculate the theoretical bias across parameters
+            errors_th_lam[l] += np.dot(cov_ap, inner_prod)[param_index]
 
     bias_lambdas[:,i] = np.abs(errors_th_lam) # i is the index of the current event, we populate biases for all lambdas here
 
