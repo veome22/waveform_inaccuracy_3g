@@ -12,7 +12,7 @@ ml anaconda
 conda activate gwbench
 
 
-python ~/scratch16-berti/3G_systematics_veome/src/run_mcmc_smooth_powerlaw_numba.py --mcmc_params 0 1 2 4 5 -i "../output/powerlaw_3.5_lams_smooth" -o "../mcmc/powerlaw_3.5_smooth_sbatch" --N_MCMC 1000 --N_walkers 15  --N_parallel 48 --reset False
+#python ~/scratch16-berti/3G_systematics_veome/src/run_mcmc_smooth_powerlaw_numba.py --mcmc_params 0 1 2 4 5 --mcmc_params_p0 -4.0 4.7 40.0 3.0 20.0 2.5 --alpha_prior_low -6.0 --alpha_prior_high -2.0 --mmin_prior_low 3.5 --mmin_prior_high 6.5 --mmax_prior_low 10.0 --mmax_prior_high 100.0 --eta_prior_low 10.0 --eta_prior_high 120.0 --beta_prior_low -1.0 --beta_prior_high 5.0 -i "../output/powerlaw_3.5_lams_smooth" -o "../mcmc/powerlaw_3.5_smooth_sbatch_biased_new" --N_MCMC 5000 --N_walkers 15  --N_parallel 48 --reset True --biased True --bias_index 1 --N_events 200
 
-
+python ~/scratch16-berti/3G_systematics_veome/src/run_mcmc_smooth_powerlaw_numba.py --mcmc_params 0 1 2 4 5 --mcmc_params_p0 -3.5 5.0 60.0 3.0 50.0 0.0 --alpha_prior_low -6.0 --alpha_prior_high -2.0 --mmin_prior_low 3.5 --mmin_prior_high 6.5 --mmax_prior_low 10.0 --mmax_prior_high 100.0 --eta_prior_low 10.0 --eta_prior_high 120.0 --beta_prior_low -1.0 --beta_prior_high 5.0 -i "../output/powerlaw_3.5_lams_smooth" -o "../mcmc/powerlaw_3.5_smooth_sbatch" --N_MCMC 3000 --N_walkers 11  --N_parallel 40 --reset True --N_events 200 --biased False --bias_index 1
 
