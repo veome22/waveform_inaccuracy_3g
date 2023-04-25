@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 import os
 import sys
-
+import argparse
 import numpy as np
 from gwbench import basic_relations as br
 
@@ -17,13 +17,40 @@ import bilby
 
 import bilby.gw.utils as gwutils
 
-nlive=60
-nact=1
-maxmcmc=500
-npool=56
+parser = argparse.ArgumentParser(description='Run PE using Kens 3G Bilby code.')
 
-m1src = 120.0
-m2src= 110.0
+parser.add_argument('-o', '--outdir', default=os.environ['WORK']+"/bilby_PE_waveform_systematics/",  type=str, help='Directory to save bilby output files (default: $WORK/bilby_PE_waveform_systematics/')
+
+parser.add_argument('--m1src', default="100.0", type=float,  help='Primary source mass (default: 100)')
+parser.add_argument('--m2src', default="80.0", type=float,  help='Secondary source mass (default: 80)')
+
+parser.add_argument('--nlive', default=60, type=int,  help='(default: 60)')
+parser.add_argument('--nact', default=1, type=int,  help='(default: 1)')
+parser.add_argument('--maxmcmc', default=500, type=int,  help='(default: 500)')
+parser.add_argument('--npool', default=1, type=int,  help='number of processors to pool MCMC over (default: 1)')
+
+parser.add_argument('--waveform', default="IMRPhenomXAS",  type=str, help='Waveform model to inject the signal (default: IMRPhenomXAS')
+parser.add_argument('--waveform_det', default="IMRPhenomXAS",  type=str, help='Waveform model to recover the signal (default: IMRPhenomXAS')
+
+args = vars(parser.parse_args())
+
+outdir = args["outdir"]
+m1src = args["m1src"]
+m2src = args["m2src"]
+nlive = args["nlive"]
+nact = args["nact"]
+maxmcmc = args["maxmcmc"]
+npool = args["npool"]
+waveform = args["waveform"]
+waveform_det = args["waveform_det"]
+
+
+#nlive=60
+#nact=1
+#maxmcmc=500
+#npool=1
+#m1src = 120.0
+#m2src= 110.0
 
 theta_jn_deg=0.0
 ra_deg=60.0
@@ -35,12 +62,13 @@ fsample=2048.0
 fmin=20.
 fref=20.
 
-waveform='IMRPhenomXAS'
-waveform_det='IMRPhenomXAS'
+#waveform='IMRPhenomXAS'
+#waveform_det='IMRPhenomXAS'
 
-outdir=os.environ['WORK']+'/bilby_PE_waveform_systematics/'+f'm1_{m1src:.0f}_m2_{m2src:.0f}_{waveform}_{waveform_det}'
+#outdir=os.environ['WORK']+'/bilby_PE_waveform_systematics/'+f'm1_{m1src:.0f}_m2_{m2src:.0f}_{waveform}_{waveform_det}'
+outdir = outdir +f'm1_{m1src:.0f}_m2_{m2src:.0f}_{waveform}_{waveform_det}_npool_{npool}'
 
-if not os.path.exists(outdir)
+if not os.path.exists(outdir):
    # Create a new directory because it does not exist
    os.makedirs(outdir)
 

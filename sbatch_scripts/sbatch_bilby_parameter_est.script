@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH -J parallel_bilby_parameter_est_120_100_xas_xas           # Job name
-#SBATCH -o parallel_bilby_pe.o%j	   # Name of stdout output file
-#SBATCH -e parallel_bilby_pe.e%j	   # Name of stderr error file
+#SBATCH -J bilby_parameter_est_120_100_xas_xas           # Job name
+#SBATCH -o bilby_pe.o%j	   # Name of stdout output file
+#SBATCH -e bilby_pe.e%j	   # Name of stderr error file
 #SBATCH -p small          # Queue (partition) name
 #SBATCH -N 1             # Total # of nodes
-#SBATCH -n 56             # Total # of mpi tasks
+#SBATCH -n 1             # Total # of mpi tasks
 #SBATCH -t 20:00:00       # Run time (hh:mm:ss)
 #SBATCH --mail-type=all    # Send email at begin and end of job
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -13,9 +13,8 @@
 # Any other commands must follow all #SBATCH directives...
 
 # Load modules
-module reset 
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate wfsys
 
-conda activate gwbench
-
-python bilby_parameter_est.py 
+python ~/waveform_inaccuracy_3g/src/bilby_parameter_est.py --m1src 100.0 --m2src 90.0 --waveform "IMRPhenomXAS" --waveform_det "IMRPhenomXAS" --nlive 60 --maxmcmc 500 --nact 1 --npool 1 
 
