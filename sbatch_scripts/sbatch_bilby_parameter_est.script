@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#SBATCH -J parallel_bilby_parameter_est_120_100_xas_xas           # Job name
+#SBATCH -o parallel_bilby_pe.o%j	   # Name of stdout output file
+#SBATCH -e parallel_bilby_pe.e%j	   # Name of stderr error file
+#SBATCH -p small          # Queue (partition) name
+#SBATCH -N 1             # Total # of nodes
+#SBATCH -n 56             # Total # of mpi tasks
+#SBATCH -t 20:00:00       # Run time (hh:mm:ss)
+#SBATCH --mail-type=all    # Send email at begin and end of job
+#SBATCH --mail-user=vkapil1@jh.edu
+
+# Any other commands must follow all #SBATCH directives...
+
+# Load modules
+module reset 
+
+conda activate gwbench
+
+python bilby_parameter_est.py 
+
