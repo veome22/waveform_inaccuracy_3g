@@ -1,0 +1,77 @@
+18:13 INFO    : Waveform generator initiated with
+  frequency_domain_source_model: bilby.gw.source.lal_binary_black_hole
+  time_domain_source_model: None
+  parameter_conversion: bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+18:13 INFO    : Waveform generator initiated with
+  frequency_domain_source_model: bilby.gw.source.lal_binary_black_hole
+  time_domain_source_model: None
+  parameter_conversion: bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+18:13 INFO    : Injected signal in CE:
+18:13 INFO    :   optimal SNR = 1995.95
+18:13 INFO    :   matched filter SNR = 1995.95+0.00j
+18:13 INFO    :   chirp_mass = 101.81423136398887
+18:13 INFO    :   mass_1 = 120.0
+18:13 INFO    :   mass_2 = 114.0
+18:13 INFO    :   chi_1 = 0.0
+18:13 INFO    :   chi_2 = 0.0
+18:13 INFO    :   luminosity_distance = 1011.4196559461382
+18:13 INFO    :   theta_jn = 0.0
+18:13 INFO    :   psi = 1.0471975511965976
+18:13 INFO    :   phase = 0.0
+18:13 INFO    :   geocent_time = 1577491218.0
+18:13 INFO    :   ra = 1.0471975511965976
+18:13 INFO    :   dec = 1.0471975511965976
+18:13 INFO    :   reference_frequency = 20.0
+18:13 INFO    :   minimum_frequency = 20.0
+18:13 INFO    : Distance marginalisation file /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_dist_lookup.npz does not exist
+18:13 INFO    : Building lookup table for distance marginalisation.
+18:14 INFO    : Running for label 'mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS', output will be saved to '/work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52'
+18:14 INFO    : Using lal version 7.1.3
+18:14 INFO    : Using lal git version Branch: None;Tag: lal-v7.1.3;Id: fa9914e5d72cc6168463b5fce79eeba8037404ad;;Builder: Adam Mercer <adam.mercer@ligo.org>;Repository status: CLEAN: All modifications committed
+18:14 INFO    : Using lalsimulation version 3.0.0
+18:14 INFO    : Using lalsimulation git version Branch: None;Tag: lalsimulation-v3.0.0;Id: e8e5ff5aa1ae2676019f59b6785f55284c417fda;;Builder: Adam Mercer <adam.mercer@ligo.org>;Repository status: CLEAN: All modifications committed
+18:14 INFO    : Search parameters:
+18:14 INFO    :   mass_ratio = PowerLaw(alpha=-2.0, minimum=0.1, maximum=1.0, name='mass_ratio', latex_label='$q$', unit=None, boundary=None)
+18:14 INFO    :   total_mass = Uniform(minimum=58.5, maximum=585.0, name='total_mass', latex_label='$M$', unit=None, boundary=None)
+18:14 INFO    :   dec = Cosine(minimum=-1.5707963267948966, maximum=1.5707963267948966, name='dec', latex_label='$\\mathrm{DEC}$', unit=None, boundary=None)
+18:14 INFO    :   ra = Uniform(minimum=0, maximum=6.283185307179586, name='ra', latex_label='$\\mathrm{RA}$', unit=None, boundary='periodic')
+18:14 INFO    :   theta_jn = Sine(minimum=0, maximum=3.141592653589793, name='theta_jn', latex_label='$\\theta_{JN}$', unit=None, boundary=None)
+18:14 INFO    :   psi = Uniform(minimum=0, maximum=3.141592653589793, name='psi', latex_label='$\\psi$', unit=None, boundary='periodic')
+18:14 INFO    :   delta_phase = Uniform(minimum=0, maximum=6.283185307179586, name='delta_phase', latex_label='delta_phase', unit=None, boundary='periodic')
+18:14 INFO    :   chi_1 = Uniform(minimum=0, maximum=0.99, name='chi_1', latex_label='$\\chi_1$', unit=None, boundary=None)
+18:14 INFO    :   chi_2 = Uniform(minimum=0, maximum=0.99, name='chi_2', latex_label='$\\chi_2$', unit=None, boundary=None)
+18:14 INFO    :   time_jitter = Uniform(minimum=-0.00048828125, maximum=0.00048828125, name='time_jitter', latex_label='$t_j$', unit=None, boundary='periodic')
+18:14 INFO    :   luminosity_distance = 3417.166073216123
+18:14 INFO    :   geocent_time = 1577491130.0
+18:14 INFO    : Single likelihood evaluation took 7.612e-02 s
+18:14 INFO    : Using sampler Dynesty with kwargs {'bound': 'multi', 'sample': 'rwalk', 'verbose': True, 'periodic': None, 'reflective': None, 'check_point_delta_t': 1800, 'nlive': 60, 'first_update': None, 'walks': 100, 'npdim': None, 'rstate': None, 'queue_size': 52, 'pool': None, 'use_pool': None, 'live_points': None, 'logl_args': None, 'logl_kwargs': None, 'ptform_args': None, 'ptform_kwargs': None, 'enlarge': 1.5, 'bootstrap': None, 'vol_dec': 0.5, 'vol_check': 8.0, 'facc': 0.2, 'slices': 5, 'update_interval': 36, 'print_func': <bound method Dynesty._print_func of <bilby.core.sampler.dynesty.Dynesty object at 0x2b8bcadf1910>>, 'dlogz': 0.1, 'maxiter': None, 'maxcall': None, 'logl_max': inf, 'add_live': True, 'print_progress': True, 'save_bounds': False, 'n_effective': None, 'maxmcmc': 500, 'nact': 1, 'print_method': 'tqdm'}
+18:14 INFO    : Checkpoint every check_point_delta_t = 600s
+18:14 INFO    : Using dynesty version 1.0.1
+18:14 INFO    : Using the bilby-implemented rwalk sample method with ACT estimated walks
+18:14 INFO    : Setting up multiproccesing pool with 52 processes.
+18:14 INFO    : Resume file /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_resume.pickle does not exist.
+18:14 INFO    : Generating initial points from the prior
+18:24 INFO    : Written checkpoint file /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_resume.pickle
+18:24 WARNING : Axis limits cannot be NaN or Inf
+18:24 WARNING : Failed to create dynesty run plot at checkpoint
+18:34 INFO    : Written checkpoint file /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_resume.pickle
+18:34 WARNING : Axis limits cannot be NaN or Inf
+18:34 WARNING : Failed to create dynesty run plot at checkpoint
+18:43 INFO    : Written checkpoint file /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_resume.pickle
+18:43 INFO    : Writing 234 current samples to /work2/08178/vkapil/frontera/bilby_PE_waveform_systematics/m1_100_m2_95_IMRPhenomXAS_IMRPhenomXAS_npool_52/mtotal195.0_q1.1_z0.2_iota0.0_IMRPhenomXAS_samples.dat
+18:43 WARNING : Axis limits cannot be NaN or Inf
+18:43 WARNING : Failed to create dynesty run plot at checkpoint
+18:43 INFO    : Starting to close worker pool.
+18:43 INFO    : Finished closing worker pool.
+18:43 INFO    : Sampling time: 0:28:42.963956
+18:43 INFO    : Reconstructing marginalised parameters.
+18:43 INFO    : Using a pool with size 52 for nsamples=2283
+18:43 INFO    : Generating sky frame parameters.
+18:43 INFO    : Computing SNRs for every sample.
+18:43 INFO    : Using a pool with size 52 for nsamples=2283
+18:43 INFO    : Summary of results:
+nsamples: 2283
+ln_noise_evidence: -1991899.790
+ln_evidence: -77.230 +/-  1.025
+ln_bayes_factor: 1991822.560 +/-  1.025
+

@@ -5,8 +5,8 @@
 #SBATCH -e bilby_pe.e%j	   # Name of stderr error file
 #SBATCH -p small          # Queue (partition) name
 #SBATCH -N 1             # Total # of nodes
-#SBATCH -n 1             # Total # of mpi tasks
-#SBATCH -t 20:00:00       # Run time (hh:mm:ss)
+#SBATCH -n 52             # Total # of mpi tasks
+#SBATCH -t 48:00:00       # Run time (hh:mm:ss)
 #SBATCH --mail-type=all    # Send email at begin and end of job
 #SBATCH --mail-user=vkapil1@jh.edu
 
@@ -16,5 +16,5 @@
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate wfsys
 
-python ~/waveform_inaccuracy_3g/src/bilby_parameter_est.py --m1src 100.0 --m2src 90.0 --waveform "IMRPhenomXAS" --waveform_det "IMRPhenomXAS" --nlive 60 --maxmcmc 500 --nact 1 --npool 1 
+python ~/waveform_inaccuracy_3g/src/bilby_parameter_est.py --m1src 100.0 --m2src 95.0 --waveform "IMRPhenomXAS" --waveform_det "IMRPhenomXAS" --nlive 60 --maxmcmc 500 --nact 1 --npool 52 
 
