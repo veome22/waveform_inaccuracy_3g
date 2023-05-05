@@ -308,6 +308,13 @@ if __name__ == "__main__":
     Nt = Ns
 
 
+     # Test the likelihood computation
+    hyper_test = [-3.5, 4.97, 61.4, 50.0, 0.0]
+    start = time.time()
+    print(population_posterior(hyper_test))
+    end = time.time()
+    print(f"Time: {end-start:.5f} s")
+    
     ndim = len(mcmc_params)
     if nwalkers is None:
         nwalkers = 2*len(mcmc_params)+1
