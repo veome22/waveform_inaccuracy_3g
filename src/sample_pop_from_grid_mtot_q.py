@@ -12,93 +12,7 @@ from mpi4py import MPI
 import os
 import time
 
-def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi', cond_num=1e25):
-    
-    # initialize the network with the desired detectors
-    net = network.Network(network_spec)
-
-    # choose the desired waveform 
-    wf_model_name = 'lal_bbh'
-    # pass the chosen waveform to the network for initialization
-    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
-
-    # pick the desired frequency range
-    f_min = 5.
-    #f_max = 1024.
-    d_f = 2**-4
-    f = np.arange(f_min, f_max, d_f)
-
-    # choose whether to take Earth's rotation into account
-    use_rot = 0
-
-    # pass all these variables to the network
-    net.set_net_vars(
-        f=f, inj_params=inj_params,
-        deriv_symbs_string=deriv_symbs_string,
-        use_rot=use_rot
-        )
-
-    # compute the WF polarizations
-    net.calc_wf_polarizations()
-    # compute the WF polarizations and their derivatives
-    net.calc_wf_polarizations_derivs_num()
-
-    # setup antenna patterns, location phase factors, and PSDs
-    net.setup_ant_pat_lpf_psds()
-
-    # compute the detector responses
-    net.calc_det_responses()
-    # compute the detector responses and their derivatives
-    net.calc_det_responses_derivs_num()
-
-    # calculate the network and detector SNRs
-    net.calc_snrs()
-
-    # calculate the network and detector Fisher matrices, condition numbers,
-    # covariance matrices, error estimates, and inversion errors
-    net.calc_errors(cond_sup=cond_num)
-
-    # calculate the 90%-credible sky area (in deg)
-    net.calc_sky_area_90()
-
-    return net
-
-def get_network_snr(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi', cond_num=1e25):
-
-    # initialize the network with the desired detectors
-    net = network.Network(network_spec)
-
-    # choose the desired waveform 
-    wf_model_name = 'lal_bbh'
-    # pass the chosen waveform to the network for initialization
-    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
-
-    # pick the desired frequency range
-    f_min = 5.
-    #f_max = 1024.
-    d_f = 2**-4
-    f = np.arange(f_min, f_max, d_f)
-
-    # choose whether to take Earth's rotation into account
-    use_rot = 0
-
-    # pass all these variables to the network
-    net.set_net_vars(
-        f=f, inj_params=inj_params,
-        deriv_symbs_string=deriv_symbs_string,
-        use_rot=use_rot
-        )
-
-    # setup antenna patterns, location phase factors, and PSDs
-    net.setup_ant_pat_lpf_psds()
-
-    # compute the detector responses
-    net.calc_det_responses()
-
-    # calculate the network and detector SNRs
-    net.calc_snrs()
-
-    return net
+import gwbench_network_funcs as gwnet
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a uniform grid in Mc and eta.')
 
@@ -204,7 +118,7 @@ if __name__ == "__main__":
         # Make sure the distance is set to achieve target SNR
         if target_snr is not None:
             # get the fiducial snr at DL
-            net1_snr = get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
+            net1_snr = gwnet.get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
             
             # calculate DL required to hit target_snr
             new_DL = DL * (net1_snr.snr / target_snr)
@@ -213,7 +127,7 @@ if __name__ == "__main__":
             inj_params['DL'] = new_DL
 
 
-        net2 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2)
+        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2)
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
@@ -222,7 +136,7 @@ if __name__ == "__main__":
             with open(f'{output_path}/{offset+i}_{suffix2}_net', "wb") as fi:
                 dill.dump(None, fi)
         else:
-            net1 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
+            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1)
             net1.save_network(f'{output_path}/{offset+i}_{suffix1}_net')
             net2.save_network(f'{output_path}/{offset+i}_{suffix2}_net')    
     
