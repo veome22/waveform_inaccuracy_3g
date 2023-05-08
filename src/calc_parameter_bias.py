@@ -54,8 +54,8 @@ n_events = min(n_events, n_networks_all-offset)
 
 print(f"Reading {n_events} network objects, starting from network {offset}")
 
-#deriv_symbs_string = 'Mc eta DL chi1z chi2z'
-deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
+deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
+#deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
 param_list = deriv_symbs_string.split()
 
 network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
