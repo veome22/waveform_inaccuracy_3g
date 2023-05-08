@@ -73,7 +73,7 @@ def compute_wf_bias(net1, net2, param_list, lams=None, inj_params=None):
 	
     cov_ap = net2.cov
 
-    for d in range(len(net2.detectors):
+    for d in range(len(net2.detectors)):
         del_h_ap_all = net2.detectors[d].del_hf
         del_params_j = list(del_h_ap_all.keys())
 	
@@ -88,6 +88,4 @@ def compute_wf_bias(net1, net2, param_list, lams=None, inj_params=None):
             del_h_ap_j = del_h_ap_all[parameter_j]
             # Inner Product
             inner_prod[j] += snr.scalar_product_freq_array(del_h_ap_j, h_tr - h_ap, psd, freq_range, df)
-
-        
-	return np.dot(cov_ap, inner_prod)	
+    return np.dot(cov_ap, inner_prod)	

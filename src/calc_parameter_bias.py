@@ -54,8 +54,10 @@ n_events = min(n_events, n_networks_all-offset)
 
 print(f"Reading {n_events} network objects, starting from network {offset}")
 
+#deriv_symbs_string = 'Mc eta DL chi1z chi2z'
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
 param_list = deriv_symbs_string.split()
+
 network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
 
 print("Calculating bias thresholds for parameters " + str(param_list))
@@ -120,6 +122,8 @@ inj_Mc = np.zeros(n_events)
 inj_eta = np.zeros(n_events)
 inj_m1 = np.zeros(n_events)
 inj_m2 = np.zeros(n_events)
+inj_chi1z = np.zeros(n_events)
+inj_chi2z = np.zeros(n_events)
 inj_DL = np.zeros(n_events)
 inj_z = np.zeros(n_events)
 inj_mtotal = np.zeros(n_events)
@@ -127,7 +131,7 @@ inj_q = np.zeros(n_events)
 snrs = np.zeros(n_events)
 inspiral_t = np.zeros(n_events)
 
-stat_errs = np.zeros((n_events, len(param_list))
+stat_errs = np.zeros((n_events, len(param_list)))
 full_biases = np.zeros((n_events, len(param_list)))
 
 #max_lams = np.zeros(n_events)
@@ -173,6 +177,8 @@ for i in range(n_events):
     inj_eta[i] = eta
     inj_m1[i] = m1
     inj_m2[i] = m2
+    inj_chi1z[i] = net1.inj_params["chi1z"]
+    inj_chi2z[i] = net1.inj_params["chi2z"]
     inj_DL[i] = net1.inj_params["DL"]
     inj_z[i] = z_at_value(Planck18.luminosity_distance, net1.inj_params["DL"] * u.Mpc)
     inj_mtotal[i] = mtotal
@@ -180,7 +186,7 @@ for i in range(n_events):
 
     #cov_ap = net2.cov
     
-    stat_errs[i] = list(net2.errs.values()) 
+    stat_errs[i] = list(net2.errs.values())[:-1] 
    
    # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     full_biases[i] = bf.compute_wf_bias(net1, net2, param_list)
@@ -303,7 +309,7 @@ for i in range(n_events):
 
    # Compute the inspiral time in band using pycbc
     f_low = net1.f[0]
-    ts_5hz,fs_5hz = pnutils.get_inspiral_tf(0.,m1,m2,0.,0.,f_low)
+    ts_5hz,fs_5hz = pnutils.get_inspiral_tf(0.,inj_m1[i],inj_m2[i],inj_chi1z[i],inj_chi2z[i],f_low)
     inspiral_t[i] = -ts_5hz[0]
 
     #max_lams[i] = max_lam
@@ -321,13 +327,21 @@ df =  pd.DataFrame()
 
 df['Mc'] = inj_Mc
 df['eta'] = inj_eta
-df['DL'] = inj_DL
-df['z'] = inj_z
+
 df['m1'] = inj_m1
 df['m2'] = inj_m2
 df['M_tot'] = inj_mtotal
+
 df['q'] = inj_q
+
+df['chi1z'] = inj_chi1z
+df['chi2z'] = inj_chi2z
+
+df['DL'] = inj_DL
+df['z'] = inj_z
+
 df['snr'] = snrs
+
 df['inspiral_t'] = inspiral_t
 
 param_bias_cols = [str(param)+'_full_bias' for param in param_list]
