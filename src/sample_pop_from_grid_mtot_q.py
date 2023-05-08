@@ -119,8 +119,8 @@ mtotals = (mass1+mass2)
 
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
-
 deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
+#deriv_symbs_string = 'Mc eta DL chi1z chi2z'
 param_list = deriv_symbs_string.split()
 
 
