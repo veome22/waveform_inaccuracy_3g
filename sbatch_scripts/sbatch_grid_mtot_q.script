@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --job-name=grid_mtot_q
-#SBATCH --time=4:00:00
-#SBATCH --nodes=2
-#SBATCH --ntasks=80
+#SBATCH --time=48:00:00
+#SBATCH --nodes=3
+#SBATCH --ntasks=144
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -11,19 +11,20 @@
 ml anaconda
 conda activate gwbench
 
+mpirun -n 96 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py --N_mtot 10 --N_q 10 --N_chi1z 10 --N_chi2z 10 --mtot_min 10.0 --mtot_max 100.0 --q_min 0.1 --q_max 0.99 --chi1z_min -1.0 --chi1z_max 1.0 --chi2z_min -1.0 --chi2z_max 1.0 -o ../data/mtot_q_grids_xas_vs_d/ --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d" --SNR 10.0
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=10.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_10_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=10.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_10_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=20.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_20_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=20.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_20_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=30.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_30_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=30.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_30_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=40.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_40_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=40.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_40_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=50.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_50_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=50.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_50_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=60.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_60_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=60.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_60_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=70.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_70_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=70.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_70_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
 
-mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=80.0 --SNR 300.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_80_grid_SNR_300 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"
+#mpirun -n 10 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_grid_mtot_q.py -N 10 --offset 0 --mtot=80.0 --SNR 50.0 -o ../data/mtot_q_grids_xas_vs_d/mtot_80_grid_SNR_50 --approximant1 "IMRPhenomXAS" --approximant2 "IMRPhenomD" --suffix1 "xas" --suffix2 "d"

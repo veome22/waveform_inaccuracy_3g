@@ -16,12 +16,28 @@ import gwbench_network_funcs as gwnet
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a uniform grid in Mc and eta.')
 
-parser.add_argument('-N', default="10", type=int,  help='number of bins in the mass-ratio (q) space (default: 10)')
-parser.add_argument('-o', '--outputdir',  default="../data/uniform_grid_m1_q", type=str,  help='directory of output networks (default: ../data/uniform_grid_m1_q)')
+parser.add_argument('--N_q', default="10", type=int,  help='number of bins in the mass-ratio (q) space (default: 10)')
+parser.add_argument('--N_mtot', default="10", type=int,  help='number of bins in the total mass space (default: 10)')
+parser.add_argument('--N_chi1z', default="10", type=int,  help='number of bins in the chi1_z space (default: 10)')
+parser.add_argument('--N_chi2z', default="10", type=int,  help='number of bins in the chi2_z space (default: 10)')
 
-parser.add_argument('--mtot', default="10.0",  type=float, help='total binary mass in Solar Mass (default: 10.0)')
-parser.add_argument('--qmin', default="0.01",  type=float, help='minimum mass ratio (q) (default: 0.01)')
-parser.add_argument('--qmax', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
+parser.add_argument('-o', '--outputdir',  default="../data/", type=str,  help='directory of output networks (default: ../data/)')
+
+parser.add_argument('--mtot_min', default="10.0",  type=float, help='minimum total binary mass in Solar Mass (default: 10.0)')
+parser.add_argument('--mtot_max', default="100.0",  type=float, help='maximum total binary mass in Solar Mass (default: 100.0)')
+
+parser.add_argument('--q_min', default="0.1",  type=float, help='minimum mass ratio (q) (default: 0.1)')
+parser.add_argument('--q_max', default="0.99",  type=float, help='maximum mass ratio (q) (default: 0.99)')
+
+parser.add_argument('--chi1z_min', default="-1.0",  type=float, help='minimum chi1_z (default: -1.0)')
+parser.add_argument('--chi1z_max', default="1.0",  type=float, help='maximum chi1_z (default: 1.0)')
+
+parser.add_argument('--chi2z_min', default="-1.0",  type=float, help='minimum chi2_z (default: -1.0)')
+parser.add_argument('--chi2z_max', default="1.0",  type=float, help='maximum chi2_z (default: 1.0)')
+
+
+#parser.add_argument('--SNR', default=None, type=float, nargs='+',  help='SNRs of events (default: [10.0, 20.0, 50.0, 100.0, 200.0])')
+
 
 parser.add_argument('--DL', default="400.0",  type=float, help='luminosity distance of event in Mpc (default: 400.0, modeled after GW150914)')
 parser.add_argument('--SNR', default="None",  type=float, help='SNR of event in Mpc. Overrides the DL argument if specified. (default: None')
@@ -38,12 +54,25 @@ parser.add_argument('--suffix2', default="d",  type=str, help='filename suffix t
 args = vars(parser.parse_args())
 # print(args)
 
-n_q = args["N"]
-output_path = args["outputdir"]
+n_q = args["N_q"]
+n_mtot = args["N_mtot"]
+n_chi1z = args["N_chi1z"]
+n_chi2z = args["N_chi2z"]
 
-m_tot = args["mtot"]
-q_min = args["qmin"]
-q_max = args["qmax"]
+output_dir = args["outputdir"]
+
+mtot_min = args["mtot_min"]
+mtot_max = args["mtot_max"]
+
+
+q_min = args["q_min"]
+q_max = args["q_max"]
+
+chi1z_min = args["chi1z_min"]
+chi1z_max = args["chi1z_max"]
+
+chi2z_min = args["chi2z_min"]
+chi2z_max = args["chi2z_max"]
 
 DL = args["DL"]
 target_snr = args["SNR"]
@@ -58,18 +87,35 @@ suffix2 = args["suffix2"]
 
 seed=42
 
-#redshift = z_at_value(Planck18.luminosity_distance, DL * u.Mpc)
+output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
+
+sys.stdout.write("\n Simulating grid into" + output_path + "\n\n")
+
+n_total = n_q * n_mtot * n_chi1z * n_chi2z
+
 
 q_range = np.geomspace(q_min, q_max, num=n_q)
-mass1 = m_tot/(q_range+1.0)
-mass2 = m_tot * (q_range/(q_range+1.0))
-    
+mtot_range = np.linspace(mtot_min, mtot_max, num=n_mtot)
+
+chi1z_range = np.linspace(chi1z_min, chi1z_max, num=n_chi1z)
+chi2z_range = np.linspace(chi2z_min, chi2z_max, num=n_chi2z)
+
+# get the grid versions of all varied parameters
+qs, mtots, chi1zs, chi2zs = np.meshgrid(q_range, mtot_range, chi1z_range, chi2z_range)
+
+# compute individual masses over the grid and flatten
+mass1 = (mtots / (qs+1)).reshape(n_total)
+mass2 = (mtots* (qs/(qs+1))).reshape(n_total)
+
+# flatten the spins
+chi1_z = chi1zs.reshape(n_total)
+chi2_z = chi2zs.reshape(n_total)
+
+
 Mcs = (mass1*mass2)**(3/5) / (mass1+mass2)**(1/5) 
 etas = (mass1*mass2) / (mass1+mass2)**2
 
-## Convert source frame masses to detector frame masses
-#Mcs = Mcs * (1+redshift)
-mtotals = (mass1+mass2) #* (1+redshift)
+mtotals = (mass1+mass2)
 
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
@@ -88,7 +134,7 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    for i, task in enumerate(range(n_q)):
+    for i, task in enumerate(range(n_total)):
         
         if i%size!=rank: continue
         
@@ -99,8 +145,8 @@ if __name__ == "__main__":
             'chi2x': 0.,
             'chi1y': 0.,
             'chi2y': 0.,
-            'chi1z': 0.,
-            'chi2z': 0.,
+            'chi1z': chi1_z[i],
+            'chi2z': chi2_z[i],
             'DL':    DL,
             'tc':    0,
             'phic':  0,
@@ -113,7 +159,7 @@ if __name__ == "__main__":
 
         sys.stdout.write("Event number %d (%d) being simulated by processor %d of %d\n" % (i, task, rank, size))
 
-        sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}\n")
+        sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}, chi1z: {chi1_z[i]:.2f}, chi2_z: {chi2_z[i]:.2f}\n")
         
         # Make sure the distance is set to achieve target SNR
         if target_snr is not None:
