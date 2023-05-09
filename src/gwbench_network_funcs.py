@@ -91,7 +91,7 @@ def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C'
     net.calc_errors(cond_sup=cond_num)
 
     # calculate the 90%-credible sky area (in deg)
-    net.calc_sky_area_90()
+    # net.calc_sky_area_90()
 
     return net
 
