@@ -89,8 +89,6 @@ seed=42
 
 output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
 
-sys.stdout.write("\n Simulating grid into" + output_path + "\n\n")
-
 n_total = n_q * n_mtot * n_chi1z * n_chi2z
 
 
@@ -133,6 +131,10 @@ if __name__ == "__main__":
     size = comm.Get_size()
 
     start = time.time()
+    
+    if rank==0:
+        sys.stdout.write("\n Simulating grid into" + output_path + "\n\n")
+
 
     for i, task in enumerate(range(n_total)):
         
