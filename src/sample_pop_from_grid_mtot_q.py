@@ -87,7 +87,10 @@ suffix2 = args["suffix2"]
 
 seed=42
 
-output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
+if target_snr is not None:
+    output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
+else:
+    output_path = output_dir + f'DL_{DL:.0f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
 
 n_total = n_q * n_mtot * n_chi1z * n_chi2z
 
