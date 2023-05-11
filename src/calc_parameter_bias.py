@@ -16,6 +16,7 @@ import sys
 import glob
 
 import bias_funcs as bf
+import gwbench_network_funcs as gwnet
 
 parser = argparse.ArgumentParser(description='Compute the values of lambda and faithfulness above which Cutler-Vallisneri bias exceeds statistical error from Fisher.')
 
@@ -70,6 +71,7 @@ inj_z = np.zeros(n_events)
 inj_mtotal = np.zeros(n_events)
 inj_q = np.zeros(n_events)
 snrs = np.zeros(n_events)
+ligo_snrs = np.zeros(n_events)
 inspiral_t = np.zeros(n_events)
 
 stat_errs = np.zeros((n_events, len(param_list)))
@@ -92,8 +94,6 @@ for i in range(n_events):
         print("NoneType object found, skipping.")
         continue
 
-    snrs[i] = net1.snr
-
     # calculate Mtotal, q (calculations from pycbc)
     # (https://github.com/gwastro/pycbc/blob/master/pycbc/conversions.py)
     mchirp = net1.inj_params["Mc"]
@@ -113,6 +113,13 @@ for i in range(n_events):
     inj_z[i] = z_at_value(Planck18.luminosity_distance, net1.inj_params["DL"] * u.Mpc)
     inj_mtotal[i] = mtotal
     inj_q[i] = q
+    
+    snrs[i] = net2.snr
+
+    # Compute corresponding LIGO SNRs
+    network_spec = ['aLIGO_H','aLIGO_L','aLIGO_V']
+    net_ligo = gwnet.get_network_snr(net1.inj_params, network_spec = network_spec, approximant='IMRPhenomD')
+    ligo_snrs[i]=net_ligo.snr
 
     stat_errs[i] = list(net2.errs.values()) 
    
@@ -175,6 +182,7 @@ df['DL'] = inj_DL
 df['z'] = inj_z
 
 df['snr'] = snrs
+df['ligo_snr'] = ligo_snrs
 
 df['inspiral_t'] = inspiral_t
 
