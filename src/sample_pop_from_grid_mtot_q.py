@@ -121,6 +121,7 @@ f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
 param_list = deriv_symbs_string.split()
 
+network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
 
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
@@ -166,7 +167,7 @@ if __name__ == "__main__":
         # Make sure the distance is set to achieve target SNR
         if target_snr is not None:
             # get the fiducial snr at DL
-            net1_snr = gwnet.get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string)
+            net1_snr = gwnet.get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
             
             # calculate DL required to hit target_snr
             new_DL = DL * (net1_snr.snr / target_snr)
@@ -175,7 +176,7 @@ if __name__ == "__main__":
             inj_params['DL'] = new_DL
 
 
-        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2, deriv_symbs_string=deriv_symbs_string)
+        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
@@ -184,7 +185,7 @@ if __name__ == "__main__":
             with open(f'{output_path}/{offset+i}_{suffix2}_net', "wb") as fi:
                 dill.dump(None, fi)
         else:
-            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string)
+            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
             net1.save_network(f'{output_path}/{offset+i}_{suffix1}_net')
             net2.save_network(f'{output_path}/{offset+i}_{suffix2}_net')    
     
