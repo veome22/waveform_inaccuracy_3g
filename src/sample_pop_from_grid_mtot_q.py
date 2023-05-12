@@ -40,7 +40,7 @@ parser.add_argument('--chi2z_max', default="1.0",  type=float, help='maximum chi
 
 
 parser.add_argument('--DL', default="400.0",  type=float, help='luminosity distance of event in Mpc (default: 400.0, modeled after GW150914)')
-parser.add_argument('--SNR', default="None",  type=float, help='SNR of event in Mpc. Overrides the DL argument if specified. (default: None')
+parser.add_argument('--SNR', type=float, help='SNR of event in Mpc. Overrides the DL argument if specified. (default: None')
 
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
