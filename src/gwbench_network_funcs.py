@@ -5,8 +5,21 @@ import astropy.units as u
 from gwbench import basic_relations as br
 
 
+network_dict = {
+        'aLIGO':    ['aLIGO_H','aLIGO_L','V+_V'],
+        'A+':       ['A+_H', 'A+_L','A+_V'],
+        'Voyager':  ['Voyager-CBO_H', 'Voyager-CBO_L', 'Voyager-CBO_V'],
+        '3G':       ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
+        }
 
-def get_network_snr(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', cond_num=1e25):
+def get_network_spec(net_key):
+    return network_dict[net_key]
+
+def get_network_snr(inj_params, f_min=5., f_max=1024., network_key = None, network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', cond_num=1e25):
+
+    # if plain text network key is passed, override full network_spec
+    if network_key is not None:
+        network_spec = network_dict[network_key]
 
     # initialize the network with the desired detectors
     net = network.Network(network_spec)
@@ -44,7 +57,17 @@ def get_network_snr(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-C
     return net
 
 
-def get_network_response(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', cond_num=1e25):
+def get_network_response(inj_params, f_min=5., f_max=1024., 
+        network_key = None, 
+        network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], 
+        approximant='IMRPhenomXAS', 
+        deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', 
+        cond_num=1e25):
+    
+    # if plain text network key is passed, override full network_spec
+    if network_key is not None:
+        network_spec = network_dict[network_key]
+
 
     # initialize the network with the desired detectors
     net = network.Network(network_spec)

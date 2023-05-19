@@ -50,6 +50,7 @@ parser.add_argument('--approximant2', default="IMRPhenomD",  type=str, help='App
 parser.add_argument('--suffix1', default="xas",  type=str, help='filename suffix to use for reference waveform')
 parser.add_argument('--suffix2', default="d",  type=str, help='filename suffix to use for other waveform')
 
+parser.add_argument('--net_key', default="3G",  type=str, help='network to compute bias over (default: 3G)')
 
 args = vars(parser.parse_args())
 # print(args)
@@ -85,12 +86,15 @@ approximant2 = args["approximant2"]
 suffix1 = args["suffix1"]
 suffix2 = args["suffix2"]
 
+net_key = args["net_key"]
+
+
 seed=42
 
 if target_snr is not None:
-    output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
+    output_path = output_dir + f'snr_{target_snr:.1f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}_{net_key}'
 else:
-    output_path = output_dir + f'DL_{DL:.0f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}'
+    output_path = output_dir + f'DL_{DL:.0f}_mtot_{mtot_min:.0f}_{mtot_max:.0f}_q_{q_min:.2f}_{q_max:.2f}_chi1z_{chi1z_min:.1f}_{chi2z_max:.1f}_{net_key}'
 
 n_total = n_q * n_mtot * n_chi1z * n_chi2z
 
@@ -124,7 +128,7 @@ f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
 param_list = deriv_symbs_string.split()
 
-network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
+#network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
 
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
@@ -170,7 +174,7 @@ if __name__ == "__main__":
         # Make sure the distance is set to achieve target SNR
         if target_snr is not None:
             # get the fiducial snr at DL
-            net1_snr = gwnet.get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
+            net1_snr = gwnet.get_network_snr(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_key=net_key)
             
             # calculate DL required to hit target_snr
             new_DL = DL * (net1_snr.snr / target_snr)
@@ -179,7 +183,7 @@ if __name__ == "__main__":
             inj_params['DL'] = new_DL
 
 
-        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
+        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant2, deriv_symbs_string=deriv_symbs_string, network_key=net_key)
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
@@ -188,7 +192,7 @@ if __name__ == "__main__":
             with open(f'{output_path}/{offset+i}_{suffix2}_net', "wb") as fi:
                 dill.dump(None, fi)
         else:
-            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_spec=network_spec)
+            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approximant1, deriv_symbs_string=deriv_symbs_string, network_key=net_key)
             net1.save_network(f'{output_path}/{offset+i}_{suffix1}_net')
             net2.save_network(f'{output_path}/{offset+i}_{suffix2}_net')    
     

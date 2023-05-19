@@ -94,6 +94,8 @@ parser.add_argument('--chi_beta', default="7.0",  type=float, help='beta paramet
 
 parser.add_argument('--offset', default="0",  type=int, help='starting index offset')
 
+parser.add_argument('--net_key', default="3G",  type=str, help='network to compute bias over (default: 3G)')
+
 args = vars(parser.parse_args())
 # print(args)
 
@@ -117,7 +119,8 @@ chi_alpha = args["chi_alpha"]
 chi_beta = args["chi_beta"]
 
 offset = args["offset"]
-   
+net_key = args["net_key"]
+
 seed=42
 
 
@@ -213,7 +216,7 @@ if __name__ == "__main__":
 
         sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}")
         
-        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomD')
+        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomD', network_key=net_key)
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
@@ -222,7 +225,7 @@ if __name__ == "__main__":
             with open(f'{output_path}/{offset+i}_d_net', "wb") as fi:
                 dill.dump(None, fi)
         else:        
-            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomXAS')
+            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomXAS', network_key=net_key)
             net1.save_network(f'{output_path}/{offset+i}_xas_net')
             net2.save_network(f'{output_path}/{offset+i}_d_net')    
     
