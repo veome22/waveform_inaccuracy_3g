@@ -55,7 +55,6 @@ deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
 #deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
 param_list = deriv_symbs_string.split()
 
-network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
 
 print("Calculating bias thresholds for parameters " + str(param_list))
 
@@ -71,7 +70,7 @@ inj_z = np.zeros(n_events)
 inj_mtotal = np.zeros(n_events)
 inj_q = np.zeros(n_events)
 snrs = np.zeros(n_events)
-ligo_snrs = np.zeros(n_events)
+
 inspiral_t = np.zeros(n_events)
 
 stat_errs = np.zeros((n_events, len(param_list)))
@@ -82,14 +81,19 @@ full_inner_prods = np.zeros(n_events)
 # MAIN LOOP
 for i in range(n_events):
     print(f"Calculating bias for network {i+offset} ({i+1} of {n_events})")
-    with open(inputdir + f'/{i+offset}_{suffix1}_net', "rb") as fi:
-        net1 = dill.load(fi)
-        fi.close() 
-
-    with open(inputdir + f'/{i+offset}_{suffix2}_net', "rb") as fi:
-        net2 = dill.load(fi)
-        fi.close()
     
+    try:
+        with open(inputdir + f'/{i+offset}_{suffix1}_net', "rb") as fi:
+            net1 = dill.load(fi)
+            fi.close() 
+
+        with open(inputdir + f'/{i+offset}_{suffix2}_net', "rb") as fi:
+            net2 = dill.load(fi)
+            fi.close()
+    except:
+        print(inputdir + f'/{i+offset}_{suffix1}_net not found, skipping.')
+        continue
+
     if net2 is None:
         print("NoneType object found, skipping.")
         continue
@@ -116,12 +120,8 @@ for i in range(n_events):
     
     snrs[i] = net2.snr
 
-    # Compute corresponding LIGO SNRs
-    network_spec = ['aLIGO_H','aLIGO_L','aLIGO_V']
-    net_ligo = gwnet.get_network_snr(net1.inj_params, network_spec = network_spec, approximant='IMRPhenomD')
-    ligo_snrs[i]=net_ligo.snr
-
-    stat_errs[i] = list(net2.errs.values()) 
+   
+    stat_errs[i] = list(net2.errs.values())[:-1] 
    
    # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     full_biases[i] = bf.compute_wf_bias(net1, net2, param_list)
@@ -182,7 +182,6 @@ df['DL'] = inj_DL
 df['z'] = inj_z
 
 df['snr'] = snrs
-df['ligo_snr'] = ligo_snrs
 
 df['inspiral_t'] = inspiral_t
 
