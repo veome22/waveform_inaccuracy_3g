@@ -12,56 +12,8 @@ from mpi4py import MPI
 import os
 import time
 
-def get_network_response(inj_params, f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'):
-    
-    # initialize the network with the desired detectors
-    net = network.Network(network_spec)
+import gwbench_network_funcs as gwnet
 
-    # choose the desired waveform 
-    wf_model_name = 'lal_bbh'
-    # pass the chosen waveform to the network for initialization
-    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
-
-    # pick the desired frequency range
-    f_min = 5.
-    #f_max = 1024.
-    d_f = 2**-4
-    f = np.arange(f_min, f_max, d_f)
-
-    # choose whether to take Earth's rotation into account
-    use_rot = 0
-
-    # pass all these variables to the network
-    net.set_net_vars(
-        f=f, inj_params=inj_params,
-        deriv_symbs_string=deriv_symbs_string,
-        use_rot=use_rot
-        )
-
-    # compute the WF polarizations
-    net.calc_wf_polarizations()
-    # compute the WF polarizations and their derivatives
-    net.calc_wf_polarizations_derivs_num()
-
-    # setup antenna patterns, location phase factors, and PSDs
-    net.setup_ant_pat_lpf_psds()
-
-    # compute the detector responses
-    net.calc_det_responses()
-    # compute the detector responses and their derivatives
-    net.calc_det_responses_derivs_num()
-
-    # calculate the network and detector SNRs
-    net.calc_snrs()
-
-    # calculate the network and detector Fisher matrices, condition numbers,
-    # covariance matrices, error estimates, and inversion errors
-    net.calc_errors(cond_sup=1e25)
-
-    # calculate the 90%-credible sky area (in deg)
-    net.calc_sky_area_90()
-
-    return net
 
 def p_m1(m1, alpha, m_min, m_max):
     '''
@@ -149,7 +101,7 @@ seed=42
 #DLs = Planck18.luminosity_distance(redshifts).value
 
 # sample redshifts from Madau Fragos (2017) pdf
-z_range = np.linspace(z_min, z_max, 1000)
+z_range = np.linspace(z_min, z_max, 10000)
 pdf_z = p_z_madau_fragos(z_range, z_min, z_max)
 cdf_z = integrate.cumulative_trapezoid(pdf_z, z_range, initial=0)
 inv_cdf_z = interpolate.interp1d(cdf_z / cdf_z[-1], z_range)
@@ -232,7 +184,7 @@ if __name__ == "__main__":
 
         sys.stdout.write(f"Mc: {Mcs[i]:.2f}, eta: {etas[i]:.2f}")
         
-        net2 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomD')
+        net2 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomD')
 
         if net2.cov is None:
             sys.stdout.write(f"Matrix not invertible for Mc={Mcs[i]:.2f}, eta={etas[i]:.2f}, writing empty file\n.")
@@ -241,7 +193,7 @@ if __name__ == "__main__":
             with open(f'{output_path}/{offset+i}_d_net', "wb") as fi:
                 dill.dump(None, fi)
         else:        
-            net1 = get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomXAS')
+            net1 = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant='IMRPhenomXAS')
             net1.save_network(f'{output_path}/{offset+i}_xas_net')
             net2.save_network(f'{output_path}/{offset+i}_d_net')    
     
