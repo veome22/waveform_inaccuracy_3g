@@ -6,7 +6,7 @@ from gwbench import basic_relations as br
 
 
 
-def get_network_snr(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi', cond_num=1e25):
+def get_network_snr(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', cond_num=1e25):
 
     # initialize the network with the desired detectors
     net = network.Network(network_spec)
@@ -44,7 +44,7 @@ def get_network_snr(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-C
     return net
 
 
-def get_network_response(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi', cond_num=1e25):
+def get_network_response(inj_params, f_min=5., f_max=1024., network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], approximant='IMRPhenomXAS', deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', cond_num=1e25):
 
     # initialize the network with the desired detectors
     net = network.Network(network_spec)
