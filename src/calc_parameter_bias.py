@@ -121,7 +121,7 @@ for i in range(n_events):
     snrs[i] = net2.snr
 
    
-    stat_errs[i] = list(net2.errs.values())[:-1] 
+    stat_errs[i] = list(net2.errs.values()) 
    
    # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     full_biases[i] = bf.compute_wf_bias(net1, net2, param_list)
@@ -130,12 +130,15 @@ for i in range(n_events):
     
     # Calculate Faithfulness using PyCBC
 
-    delta_f = net1.f[1] - net1.f[0]
-    psd = FrequencySeries(net1.detectors[1].psd, delta_f=delta_f) # caluclate mismatch using any one detector PSD
+    delta_f = net1.detectors[0].f[1] - net1.detectors[0].f[0]
+    psd = FrequencySeries(net2.detectors[0].psd, delta_f=delta_f) # caluclate mismatch using any one detector PSD
     
-    hp1_pyc = FrequencySeries(net1.hfp, delta_f=delta_f)
-    hp2_pyc = FrequencySeries(net2.hfp, delta_f=delta_f)
-    full_faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net1.f[0])
+    # make sure that the detector and waveform frequency ranges overlap
+    freq_mask = np.in1d(net1.f, net1.detectors[0].f, assume_unique=True)
+
+    hp1_pyc = FrequencySeries(net1.hfp[freq_mask], delta_f=delta_f)
+    hp2_pyc = FrequencySeries(net2.hfp[freq_mask], delta_f=delta_f)
+    full_faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net2.f[0])
 
    ## print("getting hybrid waveform")
    # hp_hyb, hc_hyb = get_hyb_wf(net1.hfp, net1.hfc, net2.hfp, net2.hfc, max_lam)
@@ -157,7 +160,7 @@ for i in range(n_events):
     ts_5hz,fs_5hz = pnutils.get_inspiral_tf(0.,inj_m1[i],inj_m2[i],inj_chi1z[i],inj_chi2z[i],f_low)
     inspiral_t[i] = -ts_5hz[0]
 
-    full_faiths[i] = full_faith
+    #full_faiths[i] = full_faith
     full_inner_prods[i] = full_inner_prod
 
 
@@ -191,7 +194,7 @@ param_stat_err_cols = [str(param)+'_stat_err' for param in param_list]
 df[param_bias_cols] = full_biases
 df[param_stat_err_cols] = stat_errs
 
-df['full_faith'] = full_faiths
+#df['full_faith'] = full_faiths
 df['full_inner_prod'] = full_inner_prods
 
 df.to_csv(outfile, index=False)
