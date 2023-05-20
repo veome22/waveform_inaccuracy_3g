@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=powerlaw_alpha_3.5_smooth
+#SBATCH --job-name=powerlaw_alpha_3.5_smooth_aLIGO
 #SBATCH --time=18:00:00
 #SBATCH --nodes=20 
 #SBATCH --ntasks=960
@@ -11,5 +11,4 @@
 ml anaconda
 conda activate gwbench
 
-mpirun -n 960 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_smooth_powerlaw.py -N 38400 -o "../data/powerlaw_3.5_smooth" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --offset 86400
-
+mpirun -n 960 python ~/scratch16-berti/3G_systematics_veome/src/sample_pop_from_smooth_powerlaw.py -N 9600 -o "../data/powerlaw_3.5_smooth_aLIGO" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --chi_alpha 2.0 --chi_beta 7.0 --net_key "aLIGO"
