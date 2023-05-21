@@ -8,8 +8,8 @@ from gwbench import basic_relations as br
 network_dict = {
         'aLIGO':    ['aLIGO_H','aLIGO_L','V+_V'],
         'A+':       ['A+_H', 'A+_L','A+_V'],
-        'Voyager':  ['Voyager-CBO_H', 'Voyager-CBO_L', 'Voyager-CBO_V'],
-        '3G':       ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
+        'Voyager':  ['Voyager-CBO_H', 'Voyager-CBO_L', 'Voyager-CBO_I'],
+        '3G':       ['CE2-40_C', 'CE2-20_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
         }
 
 def get_network_spec(net_key):
