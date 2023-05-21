@@ -51,8 +51,15 @@ n_events = min(n_events, n_networks_all-offset)
 
 print(f"Reading {n_events} network objects, starting from network {offset}")
 
-deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
+# read the derivatives string information
+with open(inputdir + f'/{offset}_{suffix1}_net', "rb") as fi:
+    net1 = dill.load(fi)
+    fi.close()
+deriv_symbs_string = net1.deriv_symbs_string
+
+#deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
 #deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
+
 param_list = deriv_symbs_string.split()
 
 
@@ -75,6 +82,10 @@ inspiral_t = np.zeros(n_events)
 
 stat_errs = np.zeros((n_events, len(param_list)))
 full_biases = np.zeros((n_events, len(param_list)))
+
+z_stat_err = np.zeros(n_events)
+z_full_bias = np.zeros(n_events)
+
 full_faiths = np.zeros(n_events)
 full_inner_prods = np.zeros(n_events)
 
@@ -122,11 +133,18 @@ for i in range(n_events):
 
    
     stat_errs[i] = list(net2.errs.values()) 
-   
+    
+    z_stat_err[i] = np.abs(z_at_value(Planck18.luminosity_distance, (net1.inj_params["DL"]+net2.errs["DL"]) * u.Mpc, zmax=1e10) - inj_z[i])
+
    # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     full_biases[i] = bf.compute_wf_bias(net1, net2, param_list)
-
     
+    if (net1.inj_params["DL"] + full_biases[i][param_list.index('DL')]) < 0 :
+        z_full_bias[i] = -1.0
+
+    else:
+        z_full_bias[i] = z_at_value(Planck18.luminosity_distance, (net1.inj_params["DL"] + full_biases[i][param_list.index('DL')]) * u.Mpc, zmax=1e10) - inj_z[i]
+
     
     # Calculate Faithfulness using PyCBC
 
@@ -194,7 +212,10 @@ param_stat_err_cols = [str(param)+'_stat_err' for param in param_list]
 df[param_bias_cols] = full_biases
 df[param_stat_err_cols] = stat_errs
 
-#df['full_faith'] = full_faiths
+df['z_stat_err'] = z_stat_err
+df['z_full_bias'] = z_full_bias
+
+df['full_faith'] = full_faiths
 df['full_inner_prod'] = full_inner_prods
 
 df.to_csv(outfile, index=False)
