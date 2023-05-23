@@ -124,11 +124,9 @@ mtotals = (mass1+mass2)
 
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
-#deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
-deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
+deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi'
 param_list = deriv_symbs_string.split()
 
-#network_spec = ['CE2-40-CBO_C', 'CE2-20-CBO_S', 'ET_ET1', 'ET_ET2', 'ET_ET3']
 
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)

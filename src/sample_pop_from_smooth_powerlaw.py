@@ -158,9 +158,12 @@ chi_range = np.linspace(0, 1, 100000)
 pdf_chi = beta(chi_range, chi_alpha, chi_beta) 
 cdf_chi = integrate.cumulative_trapezoid(pdf_chi, chi_range, initial=0)
 inv_cdf_chi = interpolate.interp1d(cdf_chi / cdf_chi[-1], chi_range)
-chi1z = inv_cdf_chi(np.random.rand(num_injs))
-chi2z = inv_cdf_chi(np.random.rand(num_injs))
+chi1 = inv_cdf_chi(np.random.rand(num_injs))
+chi2 = inv_cdf_chi(np.random.rand(num_injs))
 
+# Sample spin orientations uniformly, but only select the z component
+chi1z = chi1 * np.random.uniform(low=-1.0, high=1.0, size=num_injs)
+chi2z = chi2 * np.random.uniform(low=-1.0, high=1.0, size=num_injs)
 
 # Sample angles
 iotas, ras, decs, psis = injections.angle_sampler(num_injs, seed)
@@ -175,8 +178,7 @@ mtotals = (mass1+mass2) * (1+redshifts)
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
 
-#deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
-deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
+deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi'
 param_list = deriv_symbs_string.split()
 
 
