@@ -175,7 +175,8 @@ mtotals = (mass1+mass2) * (1+redshifts)
 f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
 
-deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
+#deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
+deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
 param_list = deriv_symbs_string.split()
 
 
@@ -188,6 +189,9 @@ if __name__ == "__main__":
     size = comm.Get_size()
 
     start = time.time()
+    
+    if rank==0:
+        sys.stdout.write("\n Simulating population into" + output_path + "\n\n")
 
     for i, task in enumerate(range(num_injs)):
         
