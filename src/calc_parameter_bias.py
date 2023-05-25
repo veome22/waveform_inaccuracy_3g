@@ -57,9 +57,6 @@ with open(inputdir + f'/{offset}_{suffix1}_net', "rb") as fi:
     fi.close()
 deriv_symbs_string = net1.deriv_symbs_string
 
-#deriv_symbs_string = 'Mc eta DL chi1z chi2z ra dec psi'
-#deriv_symbs_string = 'Mc eta DL tc phic iota ra dec psi'
-
 param_list = deriv_symbs_string.split()
 
 
@@ -131,16 +128,16 @@ for i in range(n_events):
     
     snrs[i] = net2.snr
 
-   
-    stat_errs[i] = list(net2.errs.values()) 
-    
+    stat_errs[i] = list(net2.errs.values())[:len(param_list)] 
+        
     z_stat_err[i] = np.abs(z_at_value(Planck18.luminosity_distance, (net1.inj_params["DL"]+net2.errs["DL"]) * u.Mpc, zmax=1e10) - inj_z[i])
 
    # Calculate the Theoretical Bias in Parameters based on Cutler-Vallisneri formalism
     full_biases[i] = bf.compute_wf_bias(net1, net2, param_list)
     
+    # limit the biased redshift to always be positive
     if (net1.inj_params["DL"] + full_biases[i][param_list.index('DL')]) < 0 :
-        z_full_bias[i] = -1.0
+        z_full_bias[i] = -inj_z[i] + 1e-8
 
     else:
         z_full_bias[i] = z_at_value(Planck18.luminosity_distance, (net1.inj_params["DL"] + full_biases[i][param_list.index('DL')]) * u.Mpc, zmax=1e10) - inj_z[i]
