@@ -4,7 +4,6 @@ from gwbench import network
 import astropy.units as u
 from gwbench import basic_relations as br
 
-
 network_dict = {
         'aLIGO':    ['aLIGO_H','aLIGO_L','V+_V'],
         'A+':       ['A+_H', 'A+_L','A+_V'],
