@@ -5,3 +5,4 @@ sbatch_scripts/slurm-*
 data/
 gwbench/
 src/__pycache__/
+gwbench_dev/
