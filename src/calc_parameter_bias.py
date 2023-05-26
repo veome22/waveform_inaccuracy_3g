@@ -153,8 +153,13 @@ for i in range(n_events):
 
     hp1_pyc = FrequencySeries(net1.hfp[freq_mask], delta_f=delta_f)
     hp2_pyc = FrequencySeries(net2.hfp[freq_mask], delta_f=delta_f)
-    full_faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net2.f[0])
-
+    
+    try:
+        full_faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net2.f[0], 
+            high_frequency_cutoff=net2.f[-1])
+    except:
+        print("Exception encountered when computing faithfulness. Skipping...")
+        continue
    ## print("getting hybrid waveform")
    # hp_hyb, hc_hyb = get_hyb_wf(net1.hfp, net1.hfc, net2.hfp, net2.hfc, max_lam)
    # hp_hyb_pyc = FrequencySeries(hp_hyb, delta_f=delta_f)
