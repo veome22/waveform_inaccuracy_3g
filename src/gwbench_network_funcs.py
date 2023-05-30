@@ -3,6 +3,7 @@ from gwbench import injections
 from gwbench import network
 import astropy.units as u
 from gwbench import basic_relations as br
+from gwbench import waveform as wfc
 
 network_dict = {
         'aLIGO':    ['aLIGO_H','aLIGO_L','V+_V'],
@@ -61,7 +62,7 @@ def get_network_response(inj_params, f_min=5., f_max=1024.,
         network_spec = ['CE-40_C', 'CE-20_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], 
         approximant='IMRPhenomXAS', 
         deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', 
-        cond_num=1e25):
+        cond_num=1e25, calc_detector_responses=True):
     
     # if plain text network key is passed, override full network_spec
     if network_key is not None:
@@ -94,6 +95,10 @@ def get_network_response(inj_params, f_min=5., f_max=1024.,
 
     # compute the WF polarizations
     net.calc_wf_polarizations()
+
+    if not calc_detector_responses:
+        return net
+    
     # compute the WF polarizations and their derivatives
     net.calc_wf_polarizations_derivs_num()
 
