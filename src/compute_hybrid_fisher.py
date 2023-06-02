@@ -12,6 +12,9 @@ from mpi4py import MPI
 import os
 import time
 
+from pycbc.types import FrequencySeries
+from pycbc.filter import match
+
 import gwbench_network_funcs as gwnet
 
 
@@ -47,7 +50,7 @@ net_key = args["net_key"]
 
 
 
-binaries = np.load(input_file)
+binaries = np.load(input_file, mmap_mode='r')
 print("Binaries successfully loaded from", input_file)
 
 mtotals = br.M_of_Mc_eta(binaries['Mcs'], binaries['etas'])
@@ -98,18 +101,20 @@ if __name__ == "__main__":
             } 
 
        
-        net_hybr = gwnet.get_hybrid_network_response(inj_params=inj_params, network_key=net_key, \
+        net_hybr = gwnet.get_hybrid_network_response(inj_params=inj_params, network_key=net_key, f_max=f_highs[i+offset],
                             approximant1=approx1, approximant2=approx2, cond_num=1e25)
 
 
 
         # Compute mismatch
-        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i], approximant=approx1, network_key=net_key, calc_detector_responses=False)
+        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i+offset], approximant=approx1, network_key=net_key, calc_detector_responses=False)
         
         delta_f = net_hybr.f[1] - net_hybr.f[0]
         psd = FrequencySeries(net_hybr.detectors[0].psd, delta_f=delta_f) # caluclate mismatch using any one detector PSD
+        
         # make sure that the detector and waveform frequency ranges overlap
         freq_mask = np.in1d(net_hybr.f, net_hybr.detectors[0].f, assume_unique=True)
+        
         hp1_pyc = FrequencySeries(net_true.hfp[freq_mask], delta_f=delta_f)
         hp2_pyc = FrequencySeries(net_hybr.hfp[freq_mask], delta_f=delta_f)
         faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net_hybr.f[0], high_frequency_cutoff=net_hybr.f[-1])
@@ -117,12 +122,29 @@ if __name__ == "__main__":
         # Compute the inner product (unoptimized faithfulness)
         hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
         hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
-        full_inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm))
+        inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm))
 
 
+
+        # Compute the z stat error and bias
+        z_inj = z_at_value(Planck18.luminosity_distance, net_hybr.inj_params["DL"] * u.Mpc, zmax=1e10)
+        param_list = net_hybr.deriv_symbs_string.split()
+        DL_bias = np.array(net_hybr.cutler_vallisneri_bias)[0][param_list.index('DL')]
+    
+        # ensure that the biased redshift cannot be below 0
+        if (net_hybr.inj_params["DL"] + DL_bias) < 0:
+            z_bias = 1e-8 - z_inj
+        else:    
+            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10)
+        
+        z_err = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+net_hybr.errs["DL"]) * u.Mpc, zmax=1e10) - z_inj
+
+
+        print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, faith=faith, inner_prod=inner_prod)
+        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, faith=faith, inner_prod=inner_prod,\
+                z_inj=z_inj, z_err=z_err, z_bias=z_bias)
 
 
     end = time.time()
