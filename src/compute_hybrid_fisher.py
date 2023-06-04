@@ -143,7 +143,7 @@ if __name__ == "__main__":
         print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, faith=faith, inner_prod=inner_prod,\
+        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
                 z_inj=z_inj, z_err=z_err, z_bias=z_bias)
 
 
