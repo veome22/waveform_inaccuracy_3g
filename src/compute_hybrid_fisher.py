@@ -50,14 +50,6 @@ net_key = args["net_key"]
 
 
 
-binaries = np.load(input_file, mmap_mode='r')
-print("Binaries successfully loaded from", input_file)
-
-mtotals = br.M_of_Mc_eta(binaries['Mcs'], binaries['etas'])
-f_highs = np.round(4*br.f_isco_Msolar(mtotals))
-
-
-
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
 
@@ -68,34 +60,75 @@ if __name__ == "__main__":
 
     start = time.time()
     
+    # Read the binary list ONLY ONCE, broadcast to the other processes
     if rank==0:
-        sys.stdout.write(f"\n Simulating binaries {offset} to {offset+num_injs}" + output_path + "\n\n")
+        binaries = np.load(input_file, mmap_mode='r') 
+        print("Binaries successfully loaded from", input_file)
 
+        sys.stdout.write(f"\n Simulating binaries {offset} to {offset+num_injs}" + output_path + "\n\n")
+        
+        Mcs = np.array(binaries['Mcs'])
+        etas = np.array(binaries['etas'])
+        chi1z = np.array(binaries['chi1z'])
+        chi2z = np.array(binaries['chi2z'])
+        DLs = np.array(binaries['DLs'])
+        iotas = np.array(binaries['iotas'])
+        ras = np.array(binaries['ras'])
+        decs = np.array(binaries['decs'])
+        psis = np.array(binaries['psis'])
+    
+    else:
+        Mcs = None
+        etas = None
+        chi1z = None
+        chi2z = None
+        DLs = None
+        iotas = None
+        ras = None
+        decs = None
+        psis = None
+
+        
+    Mcs = comm.bcast(Mcs, root=0)
+    etas = comm.bcast(etas, root=0)
+    chi1z = comm.bcast(chi1z, root=0)
+    chi2z = comm.bcast(chi2z, root=0)
+    DLs = comm.bcast(DLs, root=0)
+    iotas = comm.bcast(iotas, root=0)
+    ras = comm.bcast(ras, root=0)
+    decs = comm.bcast(decs, root=0)
+    psis = comm.bcast(psis, root=0)
+
+
+    # Split binaries over the processes
     for i, task in enumerate(range(num_injs)):
         
         if i%size!=rank: continue
-       
+           
         outfile = output_path +  f"hybr_{hybr:.3f}_bin_{i+offset}"
         
         sys.stdout.write("\n Binary number %d (%d) being simulated by processor %d of %d\n" % (i+offset, task, rank, size))
-        sys.stdout.write(f"Mc: {binaries['Mcs'][i+offset]:.2f}, eta: {binaries['etas'][i+offset]:.2f}\n")
+        sys.stdout.write(f"Mc: {Mcs[i+offset]:.2f}, eta: {etas[i+offset]:.2f}\n")
+    
+        mtotals = br.M_of_Mc_eta(Mcs, etas)
+        f_highs = np.round(4*br.f_isco_Msolar(mtotals))
 
         inj_params = {
-            'Mc':    binaries['Mcs'][i+offset],
-            'eta':   binaries['etas'][i+offset],
+            'Mc':    Mcs[i+offset],
+            'eta':   etas[i+offset],
             'chi1x': 0.,
             'chi2x': 0.,
             'chi1y': 0.,
             'chi2y': 0.,
-            'chi1z': binaries['chi1z'][i+offset],
-            'chi2z': binaries['chi2z'][i+offset],
-            'DL':    binaries['DLs'][i+offset],
+            'chi1z': chi1z[i+offset],
+            'chi2z': chi2z[i+offset],
+            'DL':    DLs[i+offset],
             'tc':    0,
             'phic':  0,
-            'iota':  binaries['iotas'][i+offset],
-            'ra':    binaries['ras'][i+offset],
-            'dec':   binaries['decs'][i+offset],
-            'psi':   binaries['psis'][i+offset],
+            'iota':  iotas[i+offset],
+            'ra':    ras[i+offset],
+            'dec':   decs[i+offset],
+            'psi':   psis[i+offset],
             'gmst0': 0,
             'hybr': hybr
             } 
@@ -150,6 +183,7 @@ if __name__ == "__main__":
     end = time.time()
 
     comm.Barrier()
+    
     if rank == 0:
       print('Done')
       print("Execution time {} seconds".format(end - start))
