@@ -1,10 +1,12 @@
 import pandas as pd
 import glob
 import argparse
+import numpy as np
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
 
-parser.add_argument('-i', '--inputdir', default="../data/uniform_networks_f_max",  type=str, help='input directory of network files (default: ../data/powerlaw_smooth_hybrid_3G/hybr_0.0/')
+parser.add_argument('-i', '--inputdir', default="../data/powerlaw_smooth_hybrid_3G/hybr_0.0/",  type=str, help='input directory of npz files (default: ../data/powerlaw_smooth_hybrid_3G/hybr_0.0/')
 
 parser.add_argument('-o', '--outfile', default="../output/powerlaw_smooth_hybrid_3G/hybr_0.0.csv",  type=str, help='file to output the binary properties and biases (default: ../output/powerlaw_smooth_hybrid_3G/hybr_0.0.csv)')
 
@@ -16,12 +18,13 @@ outfile = args["outfile"]
 files = glob.glob1(inputdir,f"hybr_*_bin_*")
 df = pd.DataFrame()
 
-for file in files:
-    try:
+print(f"{len(files)} files found. \n")
+
+for file in tqdm(files):
+    try:    
         data = np.load(inputdir+file, allow_pickle=True)
     except:
         continue
-
 
     df_inj = pd.DataFrame([data['inj_params'].item()])
 
@@ -42,9 +45,11 @@ for file in files:
     df_inj['z_bias'] = data['z_bias']
 
     df_inj.set_index("index", inplace=True)
+    
 
     df = pd.concat([df, df_inj], ignore_index=False)
 
+print(f"Completed. Writing output to {outfile}")
 df.to_csv(outfile)
 
         
