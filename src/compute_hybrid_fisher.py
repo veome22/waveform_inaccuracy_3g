@@ -62,21 +62,21 @@ if __name__ == "__main__":
     
     # Read the binary list ONLY ONCE, broadcast to the other processes
     if rank==0:
-        binaries = np.load(input_file, mmap_mode='r') 
+        with np.load(input_file, mmap_mode='r') as binaries:
+            Mcs = np.array(binaries['Mcs'])
+            etas = np.array(binaries['etas'])
+            chi1z = np.array(binaries['chi1z'])
+            chi2z = np.array(binaries['chi2z'])
+            DLs = np.array(binaries['DLs'])
+            iotas = np.array(binaries['iotas'])
+            ras = np.array(binaries['ras'])
+            decs = np.array(binaries['decs'])
+            psis = np.array(binaries['psis'])
+
         print("Binaries successfully loaded from", input_file)
 
         sys.stdout.write(f"\n Simulating binaries {offset} to {offset+num_injs}" + output_path + "\n\n")
         
-        Mcs = np.array(binaries['Mcs'])
-        etas = np.array(binaries['etas'])
-        chi1z = np.array(binaries['chi1z'])
-        chi2z = np.array(binaries['chi2z'])
-        DLs = np.array(binaries['DLs'])
-        iotas = np.array(binaries['iotas'])
-        ras = np.array(binaries['ras'])
-        decs = np.array(binaries['decs'])
-        psis = np.array(binaries['psis'])
-    
     else:
         Mcs = None
         etas = None
