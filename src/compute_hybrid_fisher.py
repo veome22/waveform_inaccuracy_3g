@@ -168,7 +168,7 @@ if __name__ == "__main__":
         if (net_hybr.inj_params["DL"] + DL_bias) < 0:
             z_bias = 1e-8 - z_inj
         else:    
-            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10)
+            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10) - z_inj
         
         z_err = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+net_hybr.errs["DL"]) * u.Mpc, zmax=1e10) - z_inj
 
