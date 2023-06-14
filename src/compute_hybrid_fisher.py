@@ -107,8 +107,8 @@ if __name__ == "__main__":
            
         outfile = output_path +  f"hybr_{hybr:.3f}_bin_{i+offset}"
         
-        sys.stdout.write("\n Binary number %d (%d) being simulated by processor %d of %d\n" % (i+offset, task, rank, size))
-        sys.stdout.write(f"Mc: {Mcs[i+offset]:.2f}, eta: {etas[i+offset]:.2f}\n")
+        print("\n Binary number %d (%d) being simulated by processor %d of %d\n" % (i+offset, task, rank, size))
+        print(f"Mc: {Mcs[i+offset]:.2f}, eta: {etas[i+offset]:.2f}\n")
     
         mtotals = br.M_of_Mc_eta(Mcs, etas)
         f_highs = np.round(4*br.f_isco_Msolar(mtotals))
