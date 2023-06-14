@@ -3,10 +3,13 @@ import glob
 import argparse
 import numpy as np
 from tqdm import tqdm
+from astropy.cosmology import Planck18, z_at_value
+import astropy.units as u
+
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
 
-parser.add_argument('-i', '--inputdir', default="../data/powerlaw_smooth_hybrid_3G/hybr_0.0/",  type=str, help='input directory of npz files (default: ../data/powerlaw_smooth_hybrid_3G/hybr_0.0/')
+parser.add_argument('-i', '--inputdir', default="../data/powerlaw_smooth_hybrid_3G",  type=str, help='input directory of npz files (default: ../data/powerlaw_smooth_hybrid_3G')
 
 parser.add_argument('-o', '--outputdir', default="../output/powerlaw_smooth_hybrid_3G",  type=str, help='folder to output the binary properties and biases (default: ../output/powerlaw_smooth_hybrid_3G)')
 
@@ -18,7 +21,7 @@ outdir = args["outputdir"]
 list_of_folders = glob.glob(inputdir+"/*/")
 
 for folder in list_of_folders:
-    outfile = outdir + "/" + folder.split('/')[-2]
+    outfile = outdir + "/" + folder.split('/')[-2]+".csv"
     print(f"Reading from {folder}")
 
     files = glob.glob1(folder,f"hybr_*_bin_*")
@@ -28,7 +31,7 @@ for folder in list_of_folders:
 
     for file in tqdm(files):
         try:    
-            data = np.load(inputdir+file, allow_pickle=True)
+            data = np.load(folder+file, allow_pickle=True)
         except:
             continue
 
@@ -67,9 +70,9 @@ for folder in list_of_folders:
 
 
 
-        df_inj['z'] = data['z_inj']
-        df_inj['z_err'] = data['z_err']
-        df_inj['z_bias'] = data['z_bias']
+        df_inj['z'] = z_inj
+        df_inj['z_err'] = z_err
+        df_inj['z_bias'] = z_bias
 
         df_inj.set_index("index", inplace=True)
         
