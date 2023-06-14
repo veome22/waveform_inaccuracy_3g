@@ -38,7 +38,7 @@ args = vars(parser.parse_args())
 
 num_injs = args["N"]
 input_file = args["input"]
-output_path = args["outputdir"]
+output_dir = args["outputdir"]
 
 offset = args["offset"]
 
@@ -48,7 +48,7 @@ hybr = args["hybr"]
 
 net_key = args["net_key"]
 
-
+output_path = output_dir + f'/hybr_{hybr}/' 
 
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
@@ -134,9 +134,12 @@ if __name__ == "__main__":
             } 
 
        
-        net_hybr = gwnet.get_hybrid_network_response(inj_params=inj_params, network_key=net_key, f_max=f_highs[i+offset],
+        try:
+            net_hybr = gwnet.get_hybrid_network_response(inj_params=inj_params, network_key=net_key, f_max=f_highs[i+offset],
                             approximant1=approx1, approximant2=approx2, cond_num=1e25)
-
+        except:
+            print(f"\n\n Error while computing network {i+offset}, with inj_params = {inj_params}, Skipping... \n\n")
+            continue
 
 
         # Compute mismatch
@@ -159,25 +162,26 @@ if __name__ == "__main__":
 
 
 
-        # Compute the z stat error and bias
-        z_inj = z_at_value(Planck18.luminosity_distance, net_hybr.inj_params["DL"] * u.Mpc, zmax=1e10)
-        param_list = net_hybr.deriv_symbs_string.split()
-        DL_bias = np.array(net_hybr.cutler_vallisneri_bias)[0][param_list.index('DL')]
-    
-        # ensure that the biased redshift cannot be below 0
-        if (net_hybr.inj_params["DL"] + DL_bias) < 0:
-            z_bias = 1e-8 - z_inj
-        else:    
-            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10) - z_inj
-        
-        z_err = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+net_hybr.errs["DL"]) * u.Mpc, zmax=1e10) - z_inj
-
-
+#        # Compute the z stat error and bias
+#        z_inj = z_at_value(Planck18.luminosity_distance, net_hybr.inj_params["DL"] * u.Mpc, zmax=1e10)
+#        param_list = net_hybr.deriv_symbs_string.split()
+#        DL_bias = np.array(net_hybr.cutler_vallisneri_bias)[0][param_list.index('DL')]
+#    
+#        # ensure that the biased redshift cannot be below 0
+#        if (net_hybr.inj_params["DL"] + DL_bias) < 0:
+#            z_bias = 1e-8 - z_inj
+#        else:    
+#            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10) - z_inj
+#        
+#        z_err = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+net_hybr.errs["DL"]) * u.Mpc, zmax=1e10) - z_inj
+#
+#
         print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
         np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
-                z_inj=z_inj, z_err=z_err, z_bias=z_bias, index=i+offset)
+                #z_inj=z_inj, z_err=z_err, z_bias=z_bias, \
+                index=i+offset)
 
 
     end = time.time()
