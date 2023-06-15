@@ -162,24 +162,11 @@ if __name__ == "__main__":
 
 
 
-#        # Compute the z stat error and bias
-#        z_inj = z_at_value(Planck18.luminosity_distance, net_hybr.inj_params["DL"] * u.Mpc, zmax=1e10)
-#        param_list = net_hybr.deriv_symbs_string.split()
-#        DL_bias = np.array(net_hybr.cutler_vallisneri_bias)[0][param_list.index('DL')]
-#    
-#        # ensure that the biased redshift cannot be below 0
-#        if (net_hybr.inj_params["DL"] + DL_bias) < 0:
-#            z_bias = 1e-8 - z_inj
-#        else:    
-#            z_bias = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+DL_bias) * u.Mpc, zmax=1e10) - z_inj
-#        
-#        z_err = z_at_value(Planck18.luminosity_distance, (net_hybr.inj_params["DL"]+net_hybr.errs["DL"]) * u.Mpc, zmax=1e10) - z_inj
-#
 #
         print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
+        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cov=net_hybr.cov, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
                 #z_inj=z_inj, z_err=z_err, z_bias=z_bias, \
                 index=i+offset)
 
