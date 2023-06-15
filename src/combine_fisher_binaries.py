@@ -5,6 +5,8 @@ import numpy as np
 from tqdm import tqdm
 from astropy.cosmology import Planck18, z_at_value
 import astropy.units as u
+from scipy.stats import multivariate_normal
+import pycbc.conversions as conv
 
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
@@ -66,13 +68,51 @@ for folder in list_of_folders:
         else:
             z_bias = z_at_value(Planck18.luminosity_distance, (DL_inj + DL_bias) * u.Mpc) - z_inj
 
-        z_err = z_at_value(Planck18.luminosity_distance, (DL_inj + DL_err) * u.Mpc) - z_inj
-
-
+        z_err = z_at_value(Planck18.luminosity_distance, (DL_inj + DL_err) * u.Mpc, zmax=10e5) - z_inj
 
         df_inj['z'] = z_inj
         df_inj['z_err'] = z_err
         df_inj['z_bias'] = z_bias
+
+        
+        # Compute source-frame masses 
+        Mc_inj = data['inj_params'].item()['Mc']
+        eta_inj =  data['inj_params'].item()['eta']
+        DL_inj = data['inj_params'].item()['DL']
+        
+        df_inj['m1_src'] = conv.mass1_from_mchirp_eta(Mc_inj/(1+z_inj), eta_inj) # injected values
+        df_inj['m2_src'] = conv.mass2_from_mchirp_eta(Mc_inj/(1+z_inj), eta_inj) # injected values
+        
+        # Sample source-frame masses to get statistical errors
+        dist_m = multivariate_normal(mean=[Mc_inj, eta_inj, DL_inj], cov=data['cov'][:3, :3], allow_singular=True)        
+        samples = dist_m.rvs(1000) # sample Mc, eta, DL using the covariance matrix
+        samples = samples[(samples[:,0] > 0)] # Mc should be positive
+        samples = samples[(samples[:,1] < 0.25) * (samples[:,1] > 0.0)] # eta should be between 0 and 0.25
+        samples = samples[(samples[:,2] > 0.0)] # DL should be positive
+        
+        mchirp_samples = samples[:,0]
+        eta_samples = samples[:,1]
+        z_samples = z_at_value(Planck18.luminosity_distance, samples[:,2] * u.Mpc)
+
+        m1_src_samples = conv.mass1_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
+        df_inj['m1_src_err'] = np.percentile(m1_samples, 84) - np.percentile(m1_samples,16) # ~1 sigma interval
+
+        m2_src_samples = conv.mass2_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
+        df_inj['m2_src_err'] = np.percentile(m2_samples, 84) - np.percentile(m2_samples,16) # ~1 sigma interval
+
+
+        # Compute source mass biases
+        mchirp_biased = np.maximum(Mc_inj + df_inj["Mc_bias"], 0.0) # make sure that Mc can't be negative
+        eta_biased = np.maximum(eta_inj + + df_inj["eta_bias"], 0.0) # make sure that eta isn't negative
+        eta_biased = np.minimum(eta_biased, 0.25) # make sure that eta isn't larger than 0.25
+        z_biased = np.maximum(z_inj+z_bias, 1e-8)# make sure that redshift isn't negative
+
+        m1_biased = conv.mass1_from_mchirp_eta(mchirp_biased/(1+z_biased), eta_biased)
+        m2_biased = conv.mass2_from_mchirp_eta(mchirp_biased/(1+z_biased), eta_biased)
+
+        df_inj['m1_src_bias'] = m1_biased - df_inj['m1_src']
+        df_inj['m2_src_bias'] = m2_biased - df_inj['m2_src']
+
 
         df_inj.set_index("index", inplace=True)
         
