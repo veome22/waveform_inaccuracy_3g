@@ -34,6 +34,7 @@ for folder in list_of_folders:
     for file in tqdm(files):
         try:    
             data = np.load(folder+file, allow_pickle=True)
+            cov = data['cov']
         except:
             continue
 
@@ -83,6 +84,7 @@ for folder in list_of_folders:
         df_inj['m1_src'] = conv.mass1_from_mchirp_eta(Mc_inj/(1+z_inj), eta_inj) # injected values
         df_inj['m2_src'] = conv.mass2_from_mchirp_eta(Mc_inj/(1+z_inj), eta_inj) # injected values
         
+
         # Sample source-frame masses to get statistical errors
         dist_m = multivariate_normal(mean=[Mc_inj, eta_inj, DL_inj], cov=data['cov'][:3, :3], allow_singular=True)        
         samples = dist_m.rvs(1000) # sample Mc, eta, DL using the covariance matrix
@@ -95,10 +97,10 @@ for folder in list_of_folders:
         z_samples = z_at_value(Planck18.luminosity_distance, samples[:,2] * u.Mpc)
 
         m1_src_samples = conv.mass1_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
-        df_inj['m1_src_err'] = np.percentile(m1_samples, 84) - np.percentile(m1_samples,16) # ~1 sigma interval
+        df_inj['m1_src_err'] = np.percentile(m1_src_samples, 84) - np.percentile(m1_src_samples,16) # ~1 sigma interval
 
         m2_src_samples = conv.mass2_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
-        df_inj['m2_src_err'] = np.percentile(m2_samples, 84) - np.percentile(m2_samples,16) # ~1 sigma interval
+        df_inj['m2_src_err'] = np.percentile(m2_src_samples, 84) - np.percentile(m2_src_samples,16) # ~1 sigma interval
 
 
         # Compute source mass biases
@@ -112,6 +114,28 @@ for folder in list_of_folders:
 
         df_inj['m1_src_bias'] = m1_biased - df_inj['m1_src']
         df_inj['m2_src_bias'] = m2_biased - df_inj['m2_src']
+
+        
+
+
+        # compute detector-frame masses
+        df_inj['m1_det'] = conv.mass1_from_mchirp_eta(Mc_inj, eta_inj) # injected values
+        df_inj['m2_det'] = conv.mass2_from_mchirp_eta(Mc_inj, eta_inj) # injected values
+
+        # sample detector-frame masses to get statistical errors
+        m1_det_samples = conv.mass1_from_mchirp_eta(mchirp_samples, eta_samples)
+        df_inj['m1_det_err'] = np.percentile(m1_det_samples, 84) - np.percentile(m1_det_samples,16) # ~1 sigma interval
+
+        m2_det_samples = conv.mass2_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
+        df_inj['m2_det_err'] = np.percentile(m2_det_samples, 84) - np.percentile(m2_det_samples,16) # ~1 sigma interval
+        
+        # compute detector-frame mass biases
+        m1_biased = conv.mass1_from_mchirp_eta(mchirp_biased, eta_biased)
+        m2_biased = conv.mass2_from_mchirp_eta(mchirp_biased, eta_biased)
+
+        df_inj['m1_det_bias'] = m1_biased - df_inj['m1_det']
+        df_inj['m2_det_bias'] = m2_biased - df_inj['m2_det']
+
 
 
         df_inj.set_index("index", inplace=True)
