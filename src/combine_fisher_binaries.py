@@ -142,8 +142,9 @@ def post_process(folder):
         
         q_samples = m2_det_samples / m1_det_samples
         df_inj['q_err'] = np.percentile(q_samples, 84) - np.percentile(q_samples,16) # ~1 sigma interval
-        
-        df_inj['q_bias'] = (m2_biased/m1_biased) - df_inj['q']
+        q_biased = np.minimum((m2_biased/m1_biased), 1.0) # set upper limit on q
+        q_biased = np.maximum(q_biased, 0.0) # set lower limit on q
+        df_inj['q_bias'] = q_biased - df_inj['q']
 
 
 
