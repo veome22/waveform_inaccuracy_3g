@@ -7,7 +7,7 @@ from astropy.cosmology import Planck18, z_at_value
 import astropy.units as u
 from scipy.stats import multivariate_normal
 import pycbc.conversions as conv
-
+import multiprocessing
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
 
@@ -22,7 +22,8 @@ outdir = args["outputdir"]
 
 list_of_folders = glob.glob(inputdir+"/*/")
 
-for folder in list_of_folders:
+
+def post_process(folder):
     outfile = outdir + "/" + folder.split('/')[-2]+".csv"
     print(f"Reading from {folder}")
 
@@ -115,8 +116,6 @@ for folder in list_of_folders:
         df_inj['m1_src_bias'] = m1_biased - df_inj['m1_src']
         df_inj['m2_src_bias'] = m2_biased - df_inj['m2_src']
 
-        
-
 
         # compute detector-frame masses
         df_inj['m1_det'] = conv.mass1_from_mchirp_eta(Mc_inj, eta_inj) # injected values
@@ -138,6 +137,16 @@ for folder in list_of_folders:
 
 
 
+        # Mass Ratio
+        df_inj['q'] = df_inj['m2_det']/df_inj['m1_det']
+        
+        q_samples = m2_det_samples / m1_det_samples
+        df_inj['q_err'] = np.percentile(q_samples, 84) - np.percentile(q_samples,16) # ~1 sigma interval
+        
+        df_inj['q_bias'] = (m2_biased/m1_biased) - df_inj['q']
+
+
+
         df_inj.set_index("index", inplace=True)
         
 
@@ -146,4 +155,12 @@ for folder in list_of_folders:
     print(f"Completed. Writing output to {outfile}")
     df.to_csv(outfile)
 
-        
+
+if __name__ == "__main__":
+    
+    pool = multiprocessing.Pool()
+    results = pool.map(post_process, list_of_folders)
+
+    print("Computation Complete!")
+
+            
