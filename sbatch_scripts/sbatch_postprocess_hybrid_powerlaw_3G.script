@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#SBATCH --job-name=post_process_hybrid_powerlaw
+#SBATCH --time=48:00:00
+#SBATCH --nodes=1 
+#SBATCH --ntasks=20
+#SBATCH --partition=defq
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=vkapil1@jh.edu
+
+ml anaconda
+conda activate gwbench_dev
+
+
+python ~/scratch16-berti/3G_systematics_veome/src/combine_fisher_binaries.py -i "../data/powerlaw_smooth_hybrid_3G" -o "../output/powerlaw_smooth_hybrid_3G" -N 30000
+
+
