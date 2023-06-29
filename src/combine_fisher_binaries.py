@@ -8,6 +8,7 @@ import astropy.units as u
 from scipy.stats import multivariate_normal
 import pycbc.conversions as conv
 import multiprocessing
+from natsort import natsorted
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
 
@@ -22,7 +23,7 @@ args = vars(parser.parse_args())
 
 inputdir = args["inputdir"]
 outdir = args["outputdir"]
-n_binaries = args["N"]
+n_binaries = int(args["N"])
 
 list_of_folders = glob.glob(inputdir+"/*/")
 
@@ -36,7 +37,7 @@ def post_process(folder):
 
     print(f"{len(files)} files found. Processing the first {n_binaries} files. \n")
 
-    for i in tqdm(files[:n_binaries]):
+    for file in tqdm(files[:n_binaries]):
         try:    
             data = np.load(folder+file, allow_pickle=True)
             cov = data['cov']
