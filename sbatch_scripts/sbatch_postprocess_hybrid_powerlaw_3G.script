@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=post_process_hybrid_powerlaw
+#SBATCH --job-name=post_process_hybrid_powerlaw_80k_100k
 #SBATCH --time=48:00:00
 #SBATCH --nodes=1 
 #SBATCH --ntasks=20
@@ -12,6 +12,6 @@ ml anaconda
 conda activate gwbench_dev
 
 
-python ~/scratch16-berti/3G_systematics_veome/src/combine_fisher_binaries.py -i "../data/powerlaw_smooth_hybrid_3G" -o "../output/powerlaw_smooth_hybrid_3G" -N 30000
+python ~/scratch16-berti/3G_systematics_veome/src/combine_fisher_binaries.py -i "../data/powerlaw_smooth_hybrid_3G" -o "../output/powerlaw_smooth_hybrid_3G" -N 20000 --offset 80000
 
 

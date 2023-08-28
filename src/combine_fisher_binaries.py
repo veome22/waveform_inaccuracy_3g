@@ -16,28 +16,29 @@ parser.add_argument('-i', '--inputdir', default="../data/powerlaw_smooth_hybrid_
 
 parser.add_argument('-o', '--outputdir', default="../output/powerlaw_smooth_hybrid_3G",  type=str, help='folder to output the binary properties and biases (default: ../output/powerlaw_smooth_hybrid_3G)')
 
-parser.add_argument('-N', default=10000,  type=str, help='Number of binaries to post-process (default: 10000)')
-
+parser.add_argument('-N', default=10000,  type=int, help='Number of binaries to post-process (default: 10000)')
+parser.add_argument('--offset', default=0,  type=int, help='Offset (default: 0)')
 
 args = vars(parser.parse_args())
 
 inputdir = args["inputdir"]
 outdir = args["outputdir"]
-n_binaries = int(args["N"])
+n_binaries = args["N"]
+offset = args["offset"]
 
 list_of_folders = glob.glob(inputdir+"/*/")
 
 
 def post_process(folder):
-    outfile = outdir + "/" + folder.split('/')[-2]+".csv"
+    outfile = outdir + "/" + folder.split('/')[-2]+f"_{offset}_{offset+n_binaries}.csv"
     print(f"Reading from {folder}")
 
     files = natsorted(glob.glob1(folder,f"hybr_*_bin_*"))
     df = pd.DataFrame()
 
-    print(f"{len(files)} files found. Processing the first {n_binaries} files. \n")
+    print(f"{len(files)} files found. Processing files {offset} to {offset+n_binaries}. \n")
 
-    for file in tqdm(files[:n_binaries]):
+    for file in tqdm(files[offset : offset+n_binaries]):
         try:    
             data = np.load(folder+file, allow_pickle=True)
             cov = data['cov']
