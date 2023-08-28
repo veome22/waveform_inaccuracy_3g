@@ -6,7 +6,7 @@ import distributions as dist
 
 parser = argparse.ArgumentParser(description='Generate a list of binaries sampled from a power law in m1, and uniform in q.')
 
-parser.add_argument('-N', default="100000", type=int,  help='number of merger events to sample (default: 10000)')
+parser.add_argument('-N', default="100000", type=int,  help='number of merger events to sample (default: 100000)')
 parser.add_argument('-o', '--outfile',  default="~/scratch16-berti/3G_systematics_veome/data/smooth_powerlaw_pop.npz", type=str,  help='output file (default: ~/scratch16-berti/3G_systematics_veome/data/smooth_powerlaw_pop.npz)')
 
 parser.add_argument('--mmin', default="5.0",  type=float, help='minimum mass in Solar Masses (default: 5.0)')
