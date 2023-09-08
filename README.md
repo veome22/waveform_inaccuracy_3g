@@ -9,26 +9,31 @@ The BBH populaiton is inspired by the ``TRUNCATED`` model from [R. Abbott (LIGO 
 1. Run [src/sample_smooth_powerlaw_pop.py](../main/src/sample_smooth_powerlaw_pop.py) to generate a population of BBHs. 
 e.g. 
 ```
-python ~/scratch16-berti/3G_systematics_veome/src/sample_smooth_powerlaw_pop.py -N 100000 -o "../data/smooth_powerlaw_pop.npz" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --chi_alpha 2.0 --chi_beta 7.0
+python src/sample_smooth_powerlaw_pop.py -N 100000 -o "../data/smooth_powerlaw_pop.npz" --alpha -3.5 --mmin 5.0 --mmin_lim 3.0 --mmax 60.0 --chi_alpha 2.0 --chi_beta 7.0
 ```
 
 2. Then run [src/compute_hybrid_fisher.py](../main/src/compute_hybrid_fisher.py) to compute the Fisher matrix errors, waveform derivatives, Cutler-Vallisneri biases, etc. using [``GWBENCH``](https://arxiv.org/abs/2010.15202).
 e.g. to compute errors using ``IMRPhenomXAS`` and ``IMRPhenomD`` for a 3G detector network in parallel using ``MPI``, 
 ```
-mpirun -launcher fork -np 48 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N 100000 -i "../data/smooth_powerlaw_pop.npz" -o "../data/powerlaw_smooth_hybrid_3G/hybr_0.0/" --hybr 0.0 --offset 0 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
+mpirun -launcher fork -np 48 python src/compute_hybrid_fisher.py -N 100000 -i "../data/smooth_powerlaw_pop.npz" -o "../data/powerlaw_smooth_hybrid_3G/hybr_0.0/" --hybr 0.0 --offset 0 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
 ```
-
 The ``--offset`` flag is used to numerically offset the index of the simulated binaries, which is helpful to split the population into batches. To compute errors using hybrid waveforms instead, use the ``hybr`` parameter:
 
 ```
-mpirun -launcher fork -np 48 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N 100000 -i "../data/smooth_powerlaw_pop.npz" -o "../data/powerlaw_smooth_hybrid_3G/hybr_0.0/" --hybr 0.9 --offset 0 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
+mpirun -launcher fork -np 48 python src/compute_hybrid_fisher.py -N 100000 -i "../data/smooth_powerlaw_pop.npz" -o "../data/powerlaw_smooth_hybrid_3G/hybr_0.0/" --hybr 0.9 --offset 0 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
 ```
+
+To batch submit several runs for a range of hybr parameters, edit the [sbatch_scripts/python_hybrid_powerlaw_3G.py](../main/sbatch_scripts/python_hybrid_powerlaw_3G.py) script as necessary, and then run the script
+```
+python sbatch_scripts/python_hybrid_powerlaw_3G.py
+```
+
 
 3. Finally, run [src/combine_fisher_binaries.py](../main/src/combine_fisher_binaries.py) to combine the output files produced by ``GWBENCH`` into a csv file. This script also propagates biases and errors to a few astrophysically relevant parameters such as source-frame mass, redshift, mass-ratio, etc.
 e.g.
 
 ```
-python ~/scratch16-berti/3G_systematics_veome/src/combine_fisher_binaries.py -i "../data/powerlaw_smooth_hybrid_3G" -o "../output/powerlaw_smooth_hybrid_3G" -N 100000 --offset 0
+python src/combine_fisher_binaries.py -i "../data/powerlaw_smooth_hybrid_3G" -o "../output/powerlaw_smooth_hybrid_3G" -N 100000 --offset 0
 ```
 
 ## Results
