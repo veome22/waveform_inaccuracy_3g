@@ -1,8 +1,12 @@
 import os
 
-N = 66
-offset = 100000
-timeout = '10:00:00'
+#N = 66
+#offset = 100000
+#timeout = '10:00:00'
+
+N = 100000
+offset = 0
+timeout = '48:00:00'
 
 hybrs = [0.0, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0]
 
@@ -22,7 +26,7 @@ for hybr in hybrs:
 ml anaconda
 conda activate gwbench_dev
     
-mpirun -launcher fork -np 96 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N {N} --offset {offset} -i \"../data/smooth_powerlaw_pop_extra.npz\" -o \"../data/powerlaw_smooth_hybrid_3G\" --hybr {hybr} --approx1 \"IMRPhenomXAS\" --approx2 \"IMRPhenomD\"  --net_key \"3G\"
+mpirun -launcher fork -np 96 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N {N} --offset {offset} -i \"../data/smooth_powerlaw_pop.npz\" -o \"../data/powerlaw_smooth_hybrid_3G\" --hybr {hybr} --approx1 \"IMRPhenomXAS\" --approx2 \"IMRPhenomD\"  --net_key \"3G\"
     """
 
     with open(job_file, "w") as jf:
