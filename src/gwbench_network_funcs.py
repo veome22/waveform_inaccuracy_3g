@@ -61,7 +61,7 @@ def get_network_response(inj_params, f_min=5., f_max=1024.,
         network_key = None, 
         network_spec = ['CE-40_C', 'CE-20_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'], 
         approximant='IMRPhenomXAS', 
-        deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi', 
+        deriv_symbs_string = 'Mc eta chi1z chi2z DL tc phic iota ra dec psi', 
         cond_num=1e25, calc_detector_responses=True):
     
     # if plain text network key is passed, override full network_spec
@@ -128,7 +128,7 @@ def get_hybrid_network_response(inj_params, f_min=5., f_max=1024.,
         network_key = None,
         network_spec = ['CE-40_C', 'CE-20_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'],
         approximant1='IMRPhenomXAS', approximant2='IMRPhenomD',
-        deriv_symbs_string = 'Mc eta DL chi1z chi2z iota ra dec psi',
+        deriv_symbs_string = 'Mc eta chi1z chi2z DL tc phic iota ra dec psi',
         cond_num=1e25):
 
     # if plain text network key is passed, override full network_spec
