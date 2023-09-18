@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=hybrid_powerlaw_alpha_3.5_smooth_3G_hybr_0.95
-#SBATCH --time=10:00:00
-#SBATCH --nodes=2
-#SBATCH --ntasks=96
+#SBATCH --time=8:00:00
+#SBATCH --nodes=5
+#SBATCH --ntasks-per-node=48
 #SBATCH --partition=defq
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
@@ -10,5 +10,7 @@
 ml anaconda
 conda activate gwbench_dev
     
-mpirun -launcher fork -np 96 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N 66 --offset 100000 -i "../data/smooth_powerlaw_pop_extra.npz" -o "../data/powerlaw_smooth_hybrid_3G" --hybr 0.95 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
+echo $SLURM_JOB_NODELIST
+mpirun  -np 240 python ~/scratch16-berti/3G_systematics_veome/src/compute_hybrid_fisher.py -N 259 --offset 100000 -i "../data/smooth_powerlaw_pop_extra.npz" -o "../data/powerlaw_smooth_hybrid_3G_production" --hybr 0.95 --approx1 "IMRPhenomXAS" --approx2 "IMRPhenomD"  --net_key "3G"
+
     
