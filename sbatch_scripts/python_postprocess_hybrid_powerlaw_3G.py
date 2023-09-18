@@ -4,7 +4,13 @@ import numpy as np
 N = 100000
 n_per_job = 20000
 offset = 0
-timeout = '24:00:00'
+timeout = '10:00:00'
+
+#N = 259
+#n_per_job = 259
+#offset = 99741
+#timeout = '4:00:00'
+
 nodes = 1
 
 
