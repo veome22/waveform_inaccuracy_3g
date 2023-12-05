@@ -124,7 +124,8 @@ def get_network_response(inj_params, f_min=5., f_max=1024.,
 
 
 
-def get_hybrid_network_response(inj_params, f_min=5., f_max=1024.,
+def get_hybrid_network_response(inj_params2, inj_params1=None, 
+        f_min=5., f_max=1024.,
         network_key = None,
         network_spec = ['CE-40_C', 'CE-20_S', 'ET_ET1', 'ET_ET2', 'ET_ET3'],
         approximant1='IMRPhenomXAS', approximant2='IMRPhenomD',
@@ -154,7 +155,7 @@ def get_hybrid_network_response(inj_params, f_min=5., f_max=1024.,
 
     # pass all these variables to the network
     net.set_net_vars(
-        f=f, inj_params=inj_params,
+        f=f, inj_params=inj_params2,
         deriv_symbs_string=deriv_symbs_string,
         use_rot=use_rot
         )
@@ -181,7 +182,7 @@ def get_hybrid_network_response(inj_params, f_min=5., f_max=1024.,
 
     # compute the cutler-vallisneri bias with respect to the approximant1 waveform model
     wf_true = wfc.Waveform(wf_model_name = 'lal_bbh', wf_other_var_dic = {'approximant': approximant1})
-    net.calc_cutler_vallisneri_bias(wf=wf_true)
+    net.calc_cutler_vallisneri_bias(wf=wf_true, inj_params=inj_params1)
 
     return net
 
