@@ -1,22 +1,25 @@
 import os
 import numpy as np
 
-N = 100000
+# N = 100000
+N = 80000
 n_per_job = 20000
-offset = 0
+offset = 20000
+# offset = 0
 timeout = '10:00:00'
+output_dir = '../output/powerlaw_smooth_hybrid_3G_production'
 
-#N = 259
-#n_per_job = 259
-#offset = 99741
-#timeout = '4:00:00'
+# N = 213
+# n_per_job = 213
+# offset = 99787
+# timeout = '4:00:00'
+# output_dir = '../output/powerlaw_smooth_hybrid_3G_production_extra'
 
 nodes = 1
 
 
 job_dir = '/home/vkapil1/scratch16-berti/3G_systematics_veome/sbatch_scripts/hybrid_powerlaw_3G_scripts/'
 input_dir = '../data/powerlaw_smooth_hybrid_3G_production'
-output_dir = '../output/powerlaw_smooth_hybrid_3G_production'
 
 binary_range = np.arange(offset, offset+N, n_per_job)
 
@@ -32,7 +35,7 @@ for start in binary_range:
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
 
-ml anaconda
+module load anaconda
 conda activate gwbench_dev
 
 
