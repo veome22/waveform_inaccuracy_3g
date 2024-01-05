@@ -6,6 +6,8 @@ from astropy.cosmology import Planck18, z_at_value
 import astropy.units as u
 from gwbench import basic_relations as br
 from scipy import interpolate, integrate
+from scipy.optimize import minimize
+
 import dill
 import sys
 from mpi4py import MPI
@@ -13,7 +15,7 @@ import os
 import time
 
 from pycbc.types import FrequencySeries
-from pycbc.filter import match
+from pycbc.filter import optimized_match
 
 import gwbench_network_funcs as gwnet
 
@@ -34,6 +36,9 @@ parser.add_argument('--hybr', default="0.0",  type=float, help='hybrid waveform 
 
 parser.add_argument('--net_key', default="3G",  type=str, help='network to compute bias over (default: 3G)')
 
+parser.add_argument('--align_waveforms', default="True",  type=bool, help='Align the coalescence time and phase of the waveforms to maximize overlap before computing biases?')
+
+
 args = vars(parser.parse_args())
 
 num_injs = args["N"]
@@ -48,10 +53,33 @@ hybr = args["hybr"]
 
 net_key = args["net_key"]
 
+align_wfs = args["align_waveforms"]
+
 output_path = output_dir + f'/hybr_{hybr}/' 
 
 if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
+
+
+def overlap_func(params, args):
+    inj_params,f_high, approx2, net_key, freq_mask, delta_f, psd, hp1_pyc, hp1_norm  = args
+    tc, phic = params
+
+    if (phic>2*np.pi or phic<0.0):
+        return np.inf
+    
+    inj_params_ap = inj_params.copy()
+    inj_params_ap['tc'] = tc
+    inj_params_ap['phic'] = phic
+
+    net_2_try = gwnet.get_network_response(inj_params=inj_params_ap, f_max=f_high, approximant=approx2, network_key=net_key, calc_detector_responses=False)
+    hp2_pyc = FrequencySeries(net_2_try.hfp[freq_mask], delta_f=delta_f)
+    hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
+
+    inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm)) # match
+
+    return 1-inner_prod # mismatch
+
 
 if __name__ == "__main__":
     comm = MPI.COMM_WORLD
@@ -133,27 +161,42 @@ if __name__ == "__main__":
             'hybr': hybr
             } 
 
-       
+        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i+offset], approximant=approx1, network_key=net_key, calc_detector_responses=True)
+
+        delta_f = net_true.f[1] - net_true.f[0]
+        psd = FrequencySeries(net_true.detectors[0].psd, delta_f=delta_f) # calculate mismatch using any one detector PSD
+
+        # make sure that the detector and waveform frequency ranges overlap
+        freq_mask = np.in1d(net_true.f, net_true.detectors[0].f, assume_unique=True)
+
+        hp1_pyc = FrequencySeries(net_true.hfp[freq_mask], delta_f=delta_f)
+        hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
+
+        if align_wfs:
+            opt_args = [inj_params, f_highs[i+offset], approx2, net_key, freq_mask, delta_f, psd, hp1_pyc, hp1_norm]
+
+            # Find optimal phic and tc
+            initial=[0., 0.]
+            result = minimize(overlap_func, initial, args=opt_args, method='nelder-mead')
+            tc_opt, phic_opt = result.x
+            print(result)
+            inj_params_ap = inj_params.copy()
+            inj_params_ap['tc'] = tc_opt
+            inj_params_ap['phic'] = phic_opt
+        else:
+            inj_params_ap = inj_params.copy()
+
+
         try:
-            net_hybr = gwnet.get_hybrid_network_response(inj_params=inj_params, network_key=net_key, f_max=f_highs[i+offset],
-                            approximant1=approx1, approximant2=approx2, cond_num=1e25)
+            net_hybr = gwnet.get_hybrid_network_response(inj_params1=inj_params, inj_params2=inj_params_ap, network_key=net_key, f_max=f_highs[i+offset], approximant1=approx1, approximant2=approx2, cond_num=1e25)
+        
         except:
             print(f"\n\n Error while computing network {i+offset}, with inj_params = {inj_params}, Skipping... \n\n")
             continue
 
-
-        # Compute mismatch
-        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i+offset], approximant=approx1, network_key=net_key, calc_detector_responses=False)
-        
-        delta_f = net_hybr.f[1] - net_hybr.f[0]
-        psd = FrequencySeries(net_hybr.detectors[0].psd, delta_f=delta_f) # caluclate mismatch using any one detector PSD
-        
-        # make sure that the detector and waveform frequency ranges overlap
-        freq_mask = np.in1d(net_hybr.f, net_hybr.detectors[0].f, assume_unique=True)
-        
-        hp1_pyc = FrequencySeries(net_true.hfp[freq_mask], delta_f=delta_f)
+        # Compute mismatch using pycbc
         hp2_pyc = FrequencySeries(net_hybr.hfp[freq_mask], delta_f=delta_f)
-        faith, index = match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net_hybr.f[0], high_frequency_cutoff=net_hybr.f[-1])
+        faith, index = optimized_match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net_hybr.f[0], high_frequency_cutoff=net_hybr.f[-1])
         
         # Compute the inner product (unoptimized faithfulness)
         hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
@@ -166,7 +209,7 @@ if __name__ == "__main__":
         print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_hybr.inj_params, errs=net_hybr.errs, cov=net_hybr.cov, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
+        np.savez(outfile, inj_params=net_hybr.inj_params,errs=net_hybr.errs, cov=net_hybr.cov, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
                 #z_inj=z_inj, z_err=z_err, z_bias=z_bias, \
                 index=i+offset)
 
