@@ -61,24 +61,19 @@ if not os.path.exists(output_path):
     os.makedirs(output_path, exist_ok=True)
 
 
-def overlap_func(params, args):
-    inj_params,f_high, approx2, net_key, freq_mask, delta_f, psd, hp1_pyc, hp1_norm  = args
-    tc, phic = params
+def cutler_vallisneri_overlap_vec(del_hf, delta_hf, psd, freqs):
+    return np.array([ inner_prod_simps(del_hf[deriv], delta_hf, psd, freqs) for deriv in del_hf ])
 
-    if (phic>2*np.pi or phic<0.0):
-        return np.inf
-    
-    inj_params_ap = inj_params.copy()
-    inj_params_ap['tc'] = tc
-    inj_params_ap['phic'] = phic
+def inner_prod_simps_normed(h1, h2, Sn, f, h1_norm = None, h2_norm=None):
+    if h1_norm is None:
+        h1_norm = 4*np.real(integrate.simpson(y= h1*np.conjugate(h1) / Sn, x=f))
+    if h2_norm is None:
+        h2_norm = 4*np.real(integrate.simpson(y= h2*np.conjugate(h2) / Sn, x=f))
+    return  2*np.real(integrate.simpson(y= (h1*np.conjugate(h2) + h2*np.conjugate(h1)) / Sn, x=f)) / (np.sqrt(h1_norm * h2_norm))
 
-    net_2_try = gwnet.get_network_response(inj_params=inj_params_ap, f_max=f_high, approximant=approx2, network_key=net_key, calc_detector_responses=False)
-    hp2_pyc = FrequencySeries(net_2_try.hfp[freq_mask], delta_f=delta_f)
-    hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
+def inner_prod_simps(h1, h2, Sn, f):
+    return  2*np.real(integrate.simpson(y= (h1*np.conjugate(h2) + h2*np.conjugate(h1)) / Sn, x=f))
 
-    inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm)) # match
-
-    return 1-inner_prod # mismatch
 
 
 if __name__ == "__main__":
@@ -161,55 +156,103 @@ if __name__ == "__main__":
             'hybr': hybr
             } 
 
-        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i+offset], approximant=approx1, network_key=net_key, calc_detector_responses=True)
+        
+        net_true = gwnet.get_network_response(inj_params=inj_params, f_max=f_highs[i+offset],      
+                approximant=approx1, network_key=net_key, calc_detector_responses=True, calc_derivs=False, calc_fisher=False)
 
-        delta_f = net_true.f[1] - net_true.f[0]
-        psd = FrequencySeries(net_true.detectors[0].psd, delta_f=delta_f) # calculate mismatch using any one detector PSD
 
-        # make sure that the detector and waveform frequency ranges overlap
-        freq_mask = np.in1d(net_true.f, net_true.detectors[0].f, assume_unique=True)
+        net_ap_hyb = gwnet.get_hybrid_network_response(inj_params=inj_params, f_max=f_highs[i+offset], 
+            approximant1=approx1, approximant2=approx2, 
+            network_key=net_key, calc_detector_responses=True, calc_derivs=True, calc_fisher=True)
 
-        hp1_pyc = FrequencySeries(net_true.hfp[freq_mask], delta_f=delta_f)
-        hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
 
-        if align_wfs:
-            opt_args = [inj_params, f_highs[i+offset], approx2, net_key, freq_mask, delta_f, psd, hp1_pyc, hp1_norm]
-
-            # Find optimal phic and tc
-            initial=[0., 0.]
-            result = minimize(overlap_func, initial, args=opt_args, method='nelder-mead')
-            tc_opt, phic_opt = result.x
-            print(result)
-            inj_params_ap = inj_params.copy()
-            inj_params_ap['tc'] = tc_opt
-            inj_params_ap['phic'] = phic_opt
-        else:
-            inj_params_ap = inj_params.copy()
-
+        overlap_vecs_network = np.zeros((len(net_ap_hyb.detectors), len(net_ap_hyb.deriv_variables)))
 
         try:
-            net_hybr = gwnet.get_hybrid_network_response(inj_params1=inj_params, inj_params2=inj_params_ap, network_key=net_key, f_max=f_highs[i+offset], approximant1=approx1, approximant2=approx2, cond_num=1e25)
+            if align_wfs:
+                # Find optimal phic and tc using matched filter
+                # Limit the time window to precisely search for t_0
+                time_arr_d = np.linspace(-0.02, 0.02, 21001)
+
+                for d in range(len(net_ap_hyb.detectors)):
+                    ## set up initial waveforms
+                    h1 = net_true.detectors[d].hf
+                    h2 = net_ap_hyb.detectors[d].hf
+                    Sn = net_ap_hyb.detectors[d].psd
+                    f = net_ap_hyb.detectors[d].f
+                    network_spec_d = [net_ap_hyb.detectors[d].det_key]
+
+                    # Set up Matched Filter 
+                    x_t0_re_d = np.zeros(len(time_arr_d))
+                    x_t0_im_d = np.zeros(len(time_arr_d))
+
+                    for i_t in range(len(time_arr_d)):
+                        t0 = time_arr_d[i_t]
+                        x_t0_d = 4*(integrate.simpson(h1 * np.conjugate(h2) * np.exp(2*np.pi*1j*f*t0)/ Sn, x=f))
+                        x_t0_re_d[i_t] = np.real(x_t0_d)
+                        x_t0_im_d[i_t] = np.imag(x_t0_d)
+
+                    # Find time that maximizes overlap
+                    max_idx = np.argmax(x_t0_re_d**2 + x_t0_im_d**2)
+                    time_shift_d = time_arr_d[max_idx]
+                    phase_shift_d = np.unwrap(np.angle(x_t0_re_d + 1j*x_t0_im_d))[max_idx]
+
+                    inj_params_opt_d = inj_params.copy()
+                    inj_params_opt_d['tc'] = time_shift_d
+                    inj_params_opt_d['phic'] = phase_shift_d 
+
+                    net_tr_opt_d = gwnet.get_network_response(inj_params=inj_params_opt_d, f_max=f_highs[i+offset], 
+                    approximant=approx1,
+                    network_spec=network_spec_d, calc_detector_responses=True, calc_derivs=False, calc_fisher=False)
+
+                    print("Inner product:")
+                    print(inner_prod_simps_normed(net_tr_opt_d.detectors[0].hf, h2, Sn, f))
+
+                    if d==0: # save overlap for the first detector
+                        faith = inner_prod_simps_normed(net_tr_opt_d.detectors[0].hf, h2, Sn, f)
+
+                    ## Compute CV overlap vector for this detector
+                    delta_hf = net_tr_opt_d.detectors[0].hf - h2
+                    overlap_vecs_network[d] = cutler_vallisneri_overlap_vec(net_ap_hyb.detectors[d].del_hf, delta_hf, Sn, f)
+
+                cv_bias = np.matmul(net_ap_hyb.cov, np.sum(overlap_vecs_network, axis=0))
+
+
+            else:
+                for d in range(len(net_ap_hyb.detectors)):
+                    ## set up initial waveforms
+                    h1 = net_true.detectors[d].hf
+                    h2 = net_ap_hyb.detectors[d].hf
+                    Sn = net_ap_hyb.detectors[d].psd
+                    f = net_ap_hyb.detectors[d].f
+
+                    if d==0: # save overlap for the first detector
+                        faith = inner_prod_simps_normed(h1, h2, Sn, f)
+
+                    ## Compute CV overlap vector for this detector
+                    delta_hf = h1 - h2
+                    overlap_vecs_network[d] = cutler_vallisneri_overlap_vec(net_ap_hyb.detectors[d].del_hf, delta_hf, Sn, f)
+
+
+                cv_bias = np.matmul(net_ap_hyb.cov, np.sum(overlap_vecs_network, axis=0))
+
         
         except:
             print(f"\n\n Error while computing network {i+offset}, with inj_params = {inj_params}, Skipping... \n\n")
             continue
 
-        # Compute mismatch using pycbc
-        hp2_pyc = FrequencySeries(net_hybr.hfp[freq_mask], delta_f=delta_f)
-        faith, index = optimized_match(hp1_pyc, hp2_pyc, psd=psd, low_frequency_cutoff=net_hybr.f[0], high_frequency_cutoff=net_hybr.f[-1])
-        
-        # Compute the inner product (unoptimized faithfulness)
-        hp1_norm = np.sum((hp1_pyc * np.conjugate(hp1_pyc) / psd).data)
-        hp2_norm = np.sum((hp2_pyc * np.conjugate(hp2_pyc) / psd).data)
-        inner_prod = np.abs(np.sum((hp1_pyc * np.conjugate(hp2_pyc)/psd).data)) / np.abs(np.sqrt(hp1_norm*hp2_norm))
+        d = 0
+        h1 = net_true.detectors[d].hf
+        h2 = net_ap_hyb.detectors[d].hf
+        Sn = net_ap_hyb.detectors[d].psd
+        f = net_ap_hyb.detectors[d].f
+        network_spec_d = [net_ap_hyb.detectors[d].det_key]
+        inner_prod = inner_prod_simps_normed(h1, h2, Sn, f)
 
-
-
-#
-        print(f"PyCBC Faithfulness: {faith}, Inner Product {inner_prod}\n")
+        print(cv_bias)
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_hybr.inj_params,errs=net_hybr.errs, cov=net_hybr.cov, cv_bias=net_hybr.cutler_vallisneri_bias, snr=net_hybr.snr, faith=faith, inner_prod=inner_prod,\
+        np.savez(outfile, inj_params=net_ap_hyb.inj_params,errs=net_ap_hyb.errs, cov=net_ap_hyb.cov, cv_bias=cv_bias, snr=net_ap_hyb.snr, faith=faith, inner_prod=inner_prod,\
                 #z_inj=z_inj, z_err=z_err, z_bias=z_bias, \
                 index=i+offset)
 
