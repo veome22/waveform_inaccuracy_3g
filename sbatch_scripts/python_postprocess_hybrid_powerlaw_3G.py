@@ -1,12 +1,12 @@
 import os
 import numpy as np
 
-# N = 100000
-N = 80000
+N = 100000
+# N = 80000
 n_per_job = 20000
-offset = 20000
-# offset = 0
-timeout = '10:00:00'
+# offset = 20000
+offset = 0
+timeout = '20:00:00'
 output_dir = '../output/powerlaw_smooth_hybrid_3G_production'
 
 # N = 213
@@ -36,7 +36,7 @@ for start in binary_range:
 #SBATCH --mail-user=vkapil1@jh.edu
 
 module load anaconda
-conda activate gwbench_dev
+source activate gwbench_dev
 
 
 python ~/scratch16-berti/3G_systematics_veome/src/combine_fisher_binaries.py -i \"{input_dir}\" -o \"{output_dir}\" -N {n_per_job} --offset {start}
