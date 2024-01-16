@@ -5,6 +5,9 @@ from gwbench import network
 from astropy.cosmology import Planck18, z_at_value
 import astropy.units as u
 from gwbench import basic_relations as br
+from gwbench import fisher_analysis_tools as fat
+
+
 from scipy import interpolate, integrate
 from scipy.optimize import minimize
 
@@ -18,7 +21,6 @@ from pycbc.types import FrequencySeries
 from pycbc.filter import optimized_match
 
 import gwbench_network_funcs as gwnet
-
 
 parser = argparse.ArgumentParser(description='Simulate binaries from a list and compute the Waveform Biases.')
 
@@ -38,6 +40,7 @@ parser.add_argument('--net_key', default="3G",  type=str, help='network to compu
 
 parser.add_argument('--align_waveforms', default="True",  type=bool, help='Align the coalescence time and phase of the waveforms to maximize overlap before computing biases?')
 
+parser.add_argument('--spin_priors', default="True",  type=bool, help='Impose prior ranges on the spin parameters?')
 
 args = vars(parser.parse_args())
 
@@ -54,6 +57,7 @@ hybr = args["hybr"]
 net_key = args["net_key"]
 
 align_wfs = args["align_waveforms"]
+spin_priors = args["spin_priors"]
 
 output_path = output_dir + f'/hybr_{hybr}/' 
 
@@ -165,6 +169,24 @@ if __name__ == "__main__":
             approximant1=approx1, approximant2=approx2, 
             network_key=net_key, calc_detector_responses=True, calc_derivs=True, calc_fisher=True)
 
+        if spin_priors:
+            chi_prior_range = 1.0
+
+            fisher_bounds = np.zeros_like(net_ap_hyb.fisher)
+            fisher_bounds[chi1_idx,chi1_idx] = 1.0/chi_prior_range**2
+            fisher_bounds[chi2_idx,chi2_idx] = 1.0/chi_prior_range**2
+    
+            net_ap_hyb_fisher = net_ap_hyb.fisher + fisher_bounds
+
+            net_ap_hyb_cov = np.linalg.inv(net_ap_fisher_reg)
+            net_ap_hyb_cov   = (net_ap_hyb_cov + net_ap_hyb_cov.T) / 2
+
+            net_ap_hyb_errs = fat.get_errs_from_cov(net_ap_hyb_cov, net_ap_hyb.deriv_variables)
+        
+        else:
+            net_ap_hyb_fisher = net_ap_hyb.fisher
+            net_ap_hyb_cov = net_ap_hyb.cov
+            net_ap_hyb_errs = net_ap_hyb.errs
 
         overlap_vecs_network = np.zeros((len(net_ap_hyb.detectors), len(net_ap_hyb.deriv_variables)))
 
@@ -172,7 +194,7 @@ if __name__ == "__main__":
             if align_wfs:
                 # Find optimal phic and tc using matched filter
                 # Limit the time window to precisely search for t_0
-                time_arr_d = np.linspace(-0.02, 0.02, 21001)
+                time_arr_d = np.linspace(-0.2, 0.8, 21001)
 
                 for d in range(len(net_ap_hyb.detectors)):
                     ## set up initial waveforms
@@ -215,7 +237,7 @@ if __name__ == "__main__":
                     delta_hf = net_tr_opt_d.detectors[0].hf - h2
                     overlap_vecs_network[d] = cutler_vallisneri_overlap_vec(net_ap_hyb.detectors[d].del_hf, delta_hf, Sn, f)
 
-                cv_bias = np.matmul(net_ap_hyb.cov, np.sum(overlap_vecs_network, axis=0))
+                cv_bias = np.matmul(net_ap_hyb_cov, np.sum(overlap_vecs_network, axis=0))
 
 
             else:
@@ -234,7 +256,7 @@ if __name__ == "__main__":
                     overlap_vecs_network[d] = cutler_vallisneri_overlap_vec(net_ap_hyb.detectors[d].del_hf, delta_hf, Sn, f)
 
 
-                cv_bias = np.matmul(net_ap_hyb.cov, np.sum(overlap_vecs_network, axis=0))
+                cv_bias = np.matmul(net_ap_hyb_cov, np.sum(overlap_vecs_network, axis=0))
 
         
         except:
@@ -252,7 +274,7 @@ if __name__ == "__main__":
         print(cv_bias)
 
         # Save binary parameters, statistical errors, waveform bias, mismatch, inner product
-        np.savez(outfile, inj_params=net_ap_hyb.inj_params,errs=net_ap_hyb.errs, cov=net_ap_hyb.cov, cv_bias=cv_bias, snr=net_ap_hyb.snr, faith=faith, inner_prod=inner_prod,\
+        np.savez(outfile, inj_params=net_ap_hyb.inj_params, errs=net_ap_hyb_errs, cov=net_ap_hyb.cov, cv_bias=cv_bias, snr=net_ap_hyb.snr, faith=faith, inner_prod=inner_prod,\
                 #z_inj=z_inj, z_err=z_err, z_bias=z_bias, \
                 index=i+offset)
 
