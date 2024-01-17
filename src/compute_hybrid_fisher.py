@@ -157,6 +157,7 @@ if __name__ == "__main__":
             'dec':   decs[i+offset],
             'psi':   psis[i+offset],
             'gmst0': 0,
+            'fRef': 5.0,
             'hybr': hybr
             } 
 

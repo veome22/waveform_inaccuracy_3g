@@ -27,7 +27,8 @@ def get_network_snr(inj_params, f_min=5., f_max=1024., network_key = None, netwo
     # choose the desired waveform 
     wf_model_name = 'lal_bbh'
     # pass the chosen waveform to the network for initialization
-    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
+    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant,
+                                                       'fRef': inj_params['fRef']})
 
     # pick the desired frequency range
     #f_min = 5.
@@ -74,7 +75,8 @@ def get_network_response(inj_params, f_min=5., f_max=1024., d_f=2**-4,
     # choose the desired waveform 
     wf_model_name = 'lal_bbh'
     # pass the chosen waveform to the network for initialization
-    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant})
+    net.set_wf_vars(wf_model_name=wf_model_name, wf_other_var_dic = {'approximant': approximant,
+                                                       'fRef': inj_params['fRef']})
 
     # pick the desired frequency range
     f = np.arange(f_min, f_max, d_f)
@@ -141,7 +143,8 @@ def get_hybrid_network_response(inj_params, #inj_params1=None,
     wf_model_name =  'lal_hybrid_bbh'
     # pass the chosen waveform to the network for initialization
     net.set_wf_vars(wf_model_name, wf_other_var_dic = {'approximant1': approximant1,
-                                                       'approximant2': approximant2
+                                                       'approximant2': approximant2,
+                                                       'fRef': inj_params['fRef']
                                                        })
     # pick the desired frequency range
     f = np.arange(f_min, f_max, d_f)
