@@ -31,7 +31,7 @@ for start in binary_range:
 #SBATCH --time={timeout}
 #SBATCH --nodes={nodes} 
 #SBATCH --ntasks-per-node=48
-#SBATCH --partition=defq
+#SBATCH --partition=parallel
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=vkapil1@jh.edu
 
