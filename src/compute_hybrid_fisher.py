@@ -173,13 +173,16 @@ if __name__ == "__main__":
         if spin_priors:
             chi_prior_range = 1.0
 
+            chi1_idx = net_ap_hyb.deriv_variables.index('chi1z')
+            chi2_idx = net_ap_hyb.deriv_variables.index('chi2z')    
+
             fisher_bounds = np.zeros_like(net_ap_hyb.fisher)
             fisher_bounds[chi1_idx,chi1_idx] = 1.0/chi_prior_range**2
             fisher_bounds[chi2_idx,chi2_idx] = 1.0/chi_prior_range**2
     
             net_ap_hyb_fisher = net_ap_hyb.fisher + fisher_bounds
 
-            net_ap_hyb_cov = np.linalg.inv(net_ap_fisher_reg)
+            net_ap_hyb_cov = np.linalg.inv(net_ap_hyb_fisher)
             net_ap_hyb_cov   = (net_ap_hyb_cov + net_ap_hyb_cov.T) / 2
 
             net_ap_hyb_errs = fat.get_errs_from_cov(net_ap_hyb_cov, net_ap_hyb.deriv_variables)
