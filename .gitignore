@@ -1,6 +1,7 @@
 ./__pycache__/*
 .jupyter/
 sbatch_scripts/slurm-*
+sbatch_scripts/hybrid_powerlaw_3G_scripts/
 .template_*
 data/
 gwbench/

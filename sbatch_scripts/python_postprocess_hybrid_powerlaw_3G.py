@@ -7,7 +7,7 @@ n_per_job = 20000
 # offset = 20000
 offset = 0
 timeout = '20:00:00'
-output_dir = '../output/powerlaw_smooth_hybrid_3G_production'
+output_dir = '../output/powerlaw_smooth_hybrid_3G_production_priors'
 
 # N = 213
 # n_per_job = 213
@@ -19,7 +19,7 @@ nodes = 1
 
 
 job_dir = '/home/vkapil1/scratch16-berti/3G_systematics_veome/sbatch_scripts/hybrid_powerlaw_3G_scripts/'
-input_dir = '../data/powerlaw_smooth_hybrid_3G_production'
+input_dir = '../data/powerlaw_smooth_hybrid_3G_production_priors'
 
 binary_range = np.arange(offset, offset+N, n_per_job)
 

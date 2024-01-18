@@ -1,16 +1,16 @@
 import os
 
-# N = 1
-# offset = 100000
-# timeout = '1:00:00'
-# nodes = 1
-# pop_file = '../data/smooth_powerlaw_pop_extra.npz'
+N = 2809
+offset = 100000
+timeout = '10:00:00'
+nodes = 1
+pop_file = '../data/smooth_powerlaw_pop_extra.npz'
 
-N = 100000 
-offset = 0
-timeout = '20:00:00'
-nodes = 10
-pop_file = '../data/smooth_powerlaw_pop.npz'
+# N = 100000 
+# offset = 0
+# timeout = '20:00:00'
+# nodes = 10
+# pop_file = '../data/smooth_powerlaw_pop.npz'
 
 # hybrs = [0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0]
 hybrs = [0., 0.96 , 0.97 , 0.98 , 0.995, 1.]
