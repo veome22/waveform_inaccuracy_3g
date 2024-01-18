@@ -52,7 +52,7 @@ def post_process(folder):
         df_inj[err_colnames] = list(data['errs'].item().values())
 
         bias_colnames = [str(param)+'_bias' for param in list(param_cols)]
-        df_inj[bias_colnames] = list(data['cv_bias'][0])
+        df_inj[bias_colnames] = list(data['cv_bias'])
 
         df_inj['snr'] = data['snr']
         df_inj["index"] = data['index']
@@ -65,7 +65,7 @@ def post_process(folder):
         DL_inj = data['inj_params'].item()['DL']
         DL_err = data['errs'].item()['DL']
         DL_index = list(data['errs'].item().keys()).index("DL")
-        DL_bias = list(data['cv_bias'])[0][DL_index]
+        DL_bias = list(data['cv_bias'])[DL_index]
 
         # Compute the z stat error and bias
         z_inj = z_at_value(Planck18.luminosity_distance, DL_inj * u.Mpc)
