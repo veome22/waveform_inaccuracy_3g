@@ -9,6 +9,7 @@ from scipy.stats import multivariate_normal
 import pycbc.conversions as conv
 import multiprocessing
 from natsort import natsorted
+import os
 
 parser = argparse.ArgumentParser(description='Combine the output from fisher calculations.')
 
@@ -53,6 +54,7 @@ def post_process(folder):
 
         bias_colnames = [str(param)+'_bias' for param in list(param_cols)]
         df_inj[bias_colnames] = list(data['cv_bias'])
+        print(list(data['cv_bias']))
 
         df_inj['snr'] = data['snr']
         df_inj["index"] = data['index']
@@ -112,7 +114,7 @@ def post_process(folder):
 
         # Compute source mass biases
         mchirp_biased = np.maximum(Mc_inj + df_inj["Mc_bias"], 0.0) # make sure that Mc can't be negative
-        eta_biased = np.maximum(eta_inj + + df_inj["eta_bias"], 0.0) # make sure that eta isn't negative
+        eta_biased = np.maximum(eta_inj + df_inj["eta_bias"], 0.0) # make sure that eta isn't negative
         eta_biased = np.minimum(eta_biased, 0.25) # make sure that eta isn't larger than 0.25
         z_biased = np.maximum(z_inj+z_bias, 1e-8)# make sure that redshift isn't negative
 
@@ -131,7 +133,7 @@ def post_process(folder):
         m1_det_samples = conv.mass1_from_mchirp_eta(mchirp_samples, eta_samples)
         df_inj['m1_det_err'] = np.percentile(m1_det_samples, 84) - np.percentile(m1_det_samples,16) # ~1 sigma interval
 
-        m2_det_samples = conv.mass2_from_mchirp_eta(mchirp_samples/(1+z_samples), eta_samples)
+        m2_det_samples = conv.mass2_from_mchirp_eta(mchirp_samples, eta_samples)
         df_inj['m2_det_err'] = np.percentile(m2_det_samples, 84) - np.percentile(m2_det_samples,16) # ~1 sigma interval
         
         # compute detector-frame mass biases
@@ -153,7 +155,6 @@ def post_process(folder):
         df_inj['q_bias'] = q_biased - df_inj['q']
 
 
-
         df_inj.set_index("index", inplace=True)
         
 
@@ -164,7 +165,9 @@ def post_process(folder):
 
 
 if __name__ == "__main__":
-    
+    if not os.path.exists(outdir):
+        os.makedirs(outdir, exist_ok=True)
+
     pool = multiprocessing.Pool()
     results = pool.map(post_process, list_of_folders)
 
